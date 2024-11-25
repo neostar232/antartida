@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Alta de Unidad de Medida{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="tx_uni">Unidad de Medida</label>
+    <input name="tx_uni" id="tx_uni" required style="width: 200px;">
+    <input type="submit" value="Ingresar Unidad">
+  </form>
+
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

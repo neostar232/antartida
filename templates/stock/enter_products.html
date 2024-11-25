@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Ingreso de Productos - Almacén / Vencimiento {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form action="{{ url_for('stock.enter_wprods') }}" method="post">
+    El ingreso de los productos debe realizarse dejando detalle del almacén y la fecha de vencimiento.<br>
+    Ante el ingreso de productos con múltiple fecha de vencimiento, deje registrada la más próxima.<br>
+    Si la carga se realiza en varias oportunidades, los productos confirmados, no serán visibles.
+    <br><br>
+
+    <label for="tx_amp">Productos pendientes de Ingreso</label>
+    <label2 for="ordate">Fecha de remito: </label><input type="date" name="odt" value="" min="2024-08-01" max="2030-12-31" style="width: 150px;"/>
+    <label2 for="ordnum">Nro. de remito: </label><input name="nuo" style="width: 100px;" type="text" value="0000-00000000" pattern="(?=.*\d).{4}-(?=.*\d).{8}"/>
+    <table>
+      <thead>
+        <tr align="center">
+          <!-- <th scope="col">Código</th> -->
+          <th scope="col">Tipo / Producto / Unidad de Medida</th>
+          <th scope="col">Fecha Venc.</th>
+          <th scope="col">Cant. Solic.</th>
+          <th scope="col">OK Cant. Recibida</th>
+          <th scope="col">Cant. Real</th>
+          <th scope="col">Depósito</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in ocp %}
+        <tr>
+            <input type="hidden" name="id_prodh" value="{{prod.id_product}}">
+            <input type=hidden name="id_move" value="{{prod.id_movement}}">
+          <td name="tx_prodv" style="width: 150px;">{{prod.producto}}</td>
+          <td><input type="date" name="exdt" value="" min="2024-08-01" max="2030-12-31"/></td>
+            <input type=hidden name="q_qs" value="{{prod.q_in}}">
+          <td name="q_req" style="width: 80px;">{{prod.q_in}}</td>
+          <td>
+          <!-- <input type="hidden" name="okq" value="1" />
+          <input type="checkbox" name="okq">   
+          <input type="checkbox" name="okq" onchange="activateSubmit(this)">
+          -->
+            <select name="okq">
+              <option value="" style="width: 50px;">Seleccionar</option>
+              <option name="okq" value="1" selected>Si</option>
+              <option name="okq" value="0">No</option>
+            </select>
+
+          </td>
+          <td><input name="q_rec" value="" type="number" style="width: 35px;"></td>
+          <td>
+            <select name="id_wh">
+              <option value="" style="width: 150px;">Almacén Destino</option>
+              {% for wh in whs %}
+                <option name="id_wh" value="{{wh.id_warehouse}}">{{wh.tx_warehouse}}</option>
+              {% endfor %}
+            </select>
+          </td>
+          {% endfor %}
+        </tr>        
+      </tbody>
+    </table>
+    <br>
+    <input type="submit" value="Ingresar Productos">
+  </form>
+  <br>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

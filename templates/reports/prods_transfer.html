@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Productos con intento fallido de transferencia{% endblock %}</h1>
+  
+  {% if g.user %}
+    
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+</header>
+    <table>
+      <br>
+      Tome nota de los productos involucrados: el listado se actualizará al hacer una nueva transferencia.
+      <br><br>
+      <thead>
+        <tr>
+          <th scope="col">Mov. de Fecha</th>
+          <th scope="col">Producto</th>
+          <th scope="col">Cantidad</th>
+          <th scope="col">Depósito destino</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in prodsfail %}      
+          <tr>
+            <td>{{prod.dt_io}}</td>
+            <td>{{prod.producto}}</td>
+            <td>{{prod.q_prodt}}</td>
+            <td>{{prod.tx_warehouse}}</td>
+          </tr>
+        {% if not loop.last %}
+         {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+<br><br>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

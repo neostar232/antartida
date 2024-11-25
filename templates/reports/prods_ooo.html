@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Listado de Productos con diferencia Solitado/Recibido{% endblock %}</h1>
+  {% if g.user %}
+    
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+    
+</header>
+    <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
+      <thead>
+        <tr align="center">
+          <th scope="col">Código</th>
+          <th scope="col">Producto</th>
+          <th scope="col">Orden de Compra</th>
+          <th scope="col">Solicitado</th>
+          <th scope="col">Recibido</th>
+          <th scope="col">Diferencia</th>
+          <th scope="col">Reemplazo</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in prd_ooo %}      
+          <tr>
+            <td>{{prod.cod_producto}}</td>
+            <td>{{prod.producto}}</td>
+            <td>{{prod.oc}}</td>
+            <td>{{prod.q_solicitada}}</td>
+            <td>{{prod.q_recibida}}</td>
+            <td>{{prod.dife}}</td>
+            <td>{{prod.x_repo}}</td>
+          </tr>
+        {% if not loop.last %}
+         {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    
+<br>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

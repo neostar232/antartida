@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Seleccionar usuario a modificar{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<br>
+Al seleccionar un usuario de la lista desplegable será redireccionado a la página dónde podrá hacer modificaciones.
+  <form action="{{ url_for('auth.sel_mod_user') }}" method="post">
+    <select name="sel_user">
+      <option value="" style="width: 200px;">Seleccionar Usuario</option>
+      {% for user in duser %}
+        <option name="sel_user" value="{{user.id_user}}" style="width: 80px;">{{user.tx_name}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Seleccionar usuario">
+  </form>
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

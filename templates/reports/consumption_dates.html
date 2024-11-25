@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Reporte de Productos Consumidos{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<br>
+A fin de obtener los movimientos de consumos es necesario ingresar las siguientes fechas:<br><br>
+<form method="post" action="{{ url_for('reports.consumption') }}">
+  <label2 for="start">Fecha desde:</label>
+  <input type="date" id="start" name="date_from" value="" min="2024-06-01" max="2030-12-31" style="width: 120px;"/>
+  <label2 for="start">Fecha hasta:</label>
+  <input type="date" id="end" name="date_to" value="" min="2024-06-01" max="2030-12-31" style="width: 120px;"/>
+  <br>
+  <input type="submit" value="Enviar fechas">
+</form>
+
+{% endblock %}

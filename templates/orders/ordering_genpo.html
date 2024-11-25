@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Cierre de Preorden{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<br>
+Está a punto de generar la Preorden.<br>
+Al hacerse click en el botón "Cerrar Preorden", la accion generada impedirá toda modificación o agregado de 
+información contenida en la preorden; si necesita ingresar más productos, deberá generarse un nuevo pedido,
+el que sólo podrá ser generado una vez que finalice el proceso de generación de la Orden de Compra resultante.
+<br><br>
+<form action="{{ url_for('orders.close_preorder') }}" method="post">
+  <table class="table2">
+    <tr>
+      <td>
+        <input type="submit" value="Cerrar Preorden">
+        <input type="reset" value="Cancelar Acción">
+      </td>
+    </tr>
+  </table>
+</form>
+
+<br>
+<br>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+   
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Alta de Proveedores{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="tx_supp">Nombre y Apellido / Razón Social</label>
+    <input name="tx_supp" id="tx_supp" size="50"required>
+
+    <label for="nu_cuit">CUIT</label>
+    <input name="nu_cuit" id="nu_cuit" size="50"required>
+    
+    <label for="sit_imp">Situación Impositiva</label>
+
+    <select name="sit_imp">
+      <option value="">Seleccionar Tipo</option>
+      <option value="1">Responsable Inscripto</option>
+      <option value="2">Consumidor Final</option>
+      <option value="3">Exento</option>
+      <option value="4">No Responsable</option>
+      <option value="5">Monotributista</option>
+      <option value="6">Turista Extranjero</option>
+    </select>
+
+    <label for="calle">Calle</label>
+    <input name="calle" id="password" size="20" required>
+
+    <label for="nro">Número</label>
+    <input name="nro" id="nro" size="10" required>
+
+    <label for="localidad">Localidad</label>
+    <input name="localidad" id="localidad" size="10" required>
+
+    <label for="cp">Cod. Postal</label>
+    <input name="cp" id="cp" size="10" required>
+
+    <label for="tx_province">Provincia</label>
+    <select name="tx_province">
+      <option value="">Seleccionar Provincia</option>
+      <option value="1">Ciudad Autónoma de Buenos Aires</option>
+      <option value="2">Buenos Aires</option>
+      <option value="3">Catamarca</option>
+      <option value="4">Chaco</option>
+      <option value="5">Chubut</option>
+      <option value="6">Córdoba</option>
+      <option value="7">Corrientes</option>
+      <option value="8">Entre Ríos</option>
+      <option value="9">Formosa</option>
+      <option value="10">Jujuy</option>
+      <option value="11">La Pampa</option>
+      <option value="12">La Rioja</option>
+      <option value="13">Mendoza</option>
+      <option value="14">Misiones</option>
+      <option value="15">Neuquén</option>
+      <option value="16">Río Negro</option>
+      <option value="17">Salta</option>
+      <option value="18">San Juan</option>
+      <option value="19">San Luis</option>
+      <option value="20">Santa Cruz</option>
+      <option value="21">Santa Fe</option>
+      <option value="22">Santiago del Estero</option>
+      <option value="23">Tierra del Fuego, Antártida e Islas del Atlántico Sur</option>
+      <option value="24">Tucumán</option>
+    </select>
+
+  </br>
+
+    <input type="submit" value="Ingresar Proveedor">
+  </form>
+
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

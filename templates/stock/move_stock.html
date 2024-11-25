@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block head %}
+  
+{% endblock %}
+
+{% block header %}
+  <h1>{% block title %}Movimientos (transferencias) entre almacenes{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form action="{{ url_for('stock.enter_transf') }}" method="post" name="transfer">
+    Seleccione los productos a transferir, indicando cantidad y depósito destino.<br>
+    En caso de existir más de 1 partida por producto, debe seleccionarse la de vencimiento más próximo.
+    <br><br>
+
+    <table>
+      <thead>
+        <tr align="center">
+          <!-- <th scope="col">Código</th> -->
+          <th scope="col">Tipo / Producto / Unidad de Medida</th>
+          <th scope="col">Depósito Origen</th>
+          <th scope="col">Fecha Venc.</th>
+          <th scope="col">Cant. Disponible</th>
+          <th scope="col">Cant. a Transferir</th>
+          <th scope="col">Depósito Destino</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in aptt %}
+        <tr>
+            <input type=hidden name="idprodh" value="{{prod.id_product}}">
+            <input type=hidden name="idioh" value="{{prod.id_io}}">
+          <td name="tx_prodv" style="width: 250px;">{{prod.producto}}</td>
+          <td name="wh_source" style="width: 80px;">{{prod.tx_warehouse}}</td>
+          <td name="dt_exp" style="width: 80px;">{{prod.dt_expiry}}</td>  
+          <td name="q_avai" style="width: 80px;">{{prod.q_batch_balance}}</td>
+          <td>
+            <input type=hidden name="avai" value="{{prod.q_batch_balance}}">
+            <input name="q_trf" value="0" type="number" style="width: 35px;"></td>
+          <td>
+            <select name="id_wh">
+              <option value="" style="width: 100px;">Almacén Destino</option>
+              {% for wh in whs %}
+                <option name="id_wh" value="{{wh.id_warehouse}}">{{wh.tx_warehouse}}</option>
+              {% endfor %}
+            </select>
+          </td>
+          {% endfor %}
+        </tr>        
+      </tbody>
+    </table>
+    <br>
+    <input type="submit" value="Transferir Productos" onclick="greaterNum()">
+  </form>
+  <br>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

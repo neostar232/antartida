@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Alta de Usuarios{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form action="{{ url_for('auth.register') }}" method="post">
+    <label for="tx_mail">Usuario</label>
+    <input name="tx_mail" id="tx_mail" size="50" required style="width: 200px;">
+
+    <label for="tx_name">Nombre y Apellido</label>
+    <input name="nyap" id="tx_name" size="50" required style="width: 200px;">
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" size="20" required style="width: 200px;">
+
+    <select name="rol_user">
+      <option value="" style="width: 200px;">Seleccionar rol</option>
+      {% for rol in roles %}
+        <option name="rol_user" value="{{rol.id_role}}" style="width: 80px;">{{rol.tx_desc_role}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Generar Alta">
+  </form>
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

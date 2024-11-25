@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Productos de la Preorden {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <br>
+
+    <label for="tx_amp">Productos preseleccionados:</label>
+    <table class="requesting">
+      <thead>
+        <tr>
+          <th scope="col">Cod.</th>
+          <th scope="col">Tipo / Producto / Unidad de Medida</th>
+          <th scope="col">Existencias</th>
+          <th scope="col">Cantidad</th>
+        </tr>
+      </thead>
+      <tbody>
+         {% for prod in to_view %}
+        <tr>
+          <td name="id_prodv" style="width: 20px;">{{prod.id_producto}}</td>
+          <td name="nm_prodv" style="width: 650px;">{{prod.producto}}</td>
+          <td name="nm_existv" style="width: 80px;">{{prod.existencias}}</td>
+          <td name="q_prodsv" style="width: 80px;" align="right">{{prod.nuq}}</td>
+        </tr>
+          {% if not loop.last %}
+          {% endif %}
+          {% endfor %}
+      </tbody>
+    </table>
+    <br>
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Alta de Categoría{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="tx_cate">Nombre de la Categoría</label>
+    <input name="tx_cate" id="tx_cate" required style="width: 200px;">
+    <input type="submit" value="Ingresar Categoría">
+  </form>
+
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

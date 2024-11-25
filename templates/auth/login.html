@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Datos de acceso{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="username">Usuario</label>
+    <input name="username" id="username" size="30" required style="width: 200px;">
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" size="30" required style="width: 200px;">
+    <input type="submit" value="Acceder">
+  </form>
+{% endblock %}

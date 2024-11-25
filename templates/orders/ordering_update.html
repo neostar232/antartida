@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Modificación de Productos {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+  <form action="{{ url_for('orders.update_order') }}" method="post">
+    Seleccione los productos, modificando las cantidades a solicitar.
+    <br><br>
+
+    <label for="tx_amp">Seleccione productos a modificar</label>
+    <table class="requesting">
+      <thead>
+        <tr align="center">
+          <th scope="col">Código</th>
+          <th scope="col">Tipo / Producto / Unidad de Medida</th>
+          <th scope="col">Existencias</th>
+          <th scope="col">Cantidad a solicitar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in to_upd %}
+        <tr>
+          <td name="id_prodv" style="width: 20px;">{{prod.id_producto}}</td>
+            <input type=hidden name="id_prod" value=" {{prod.id_producto}} ">
+          <td name="tx_prodv" style="width: 450px;">{{prod.producto}}</td>
+          <td name="q_exist" style="width: 80px;">{{prod.existencias}}</td>
+          <td><input name="nuqv" style="width: 90px;" value = {{prod.nuq}} type="number"></td>
+        </tr>
+        {% if not loop.last %}
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <input type="submit" value="Modificar cantidades del pedido">
+  </form>
+  
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Listado de Productos en Existencia por Almacén{% endblock %}</h1>
+  {% if g.user %}
+    
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+  <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Busqueda por producto...">  
+</header>
+  <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
+    <thead>
+      <tr>
+        <th scope="col">Código</th>
+        <th scope="col">Producto</th>
+        <th scope="col">Cám. Lácteos</th>
+        <th scope="col">Cám. Secos</th>
+        <th scope="col">Cám. Verduras</th>
+        <th scope="col">Cám. Carnes</th>
+        <th scope="col">Pañol Limpieza</th>
+        <th scope="col">Pañol Bebidas</th>
+        <th scope="col">Dep. Máquinas</th>
+        <th scope="col">Dep. Merchan.</th>
+        <th scope="col">Dep. Hospital</th>
+        <th scope="col">Pañol Elem. Cocina</th>
+        <th scope="col">Pañol Comedor</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for prod in prd_exist %}      
+      <tr>
+        <td>{{prod.cod_producto}}</td>
+        <td>{{prod.producto}}</td>
+        <td>{{prod.w01}}</td>
+        <td>{{prod.w02}}</td>
+        <td>{{prod.w03}}</td>
+        <td>{{prod.w04}}</td>
+        <td>{{prod.w05}}</td>
+        <td>{{prod.w06}}</td>
+        <td>{{prod.w07}}</td>
+        <td>{{prod.w08}}</td>
+        <td>{{prod.w09}}</td>
+        <td>{{prod.w10}}</td>
+        <td>{{prod.w11}}</td>
+      </tr>
+      {% if not loop.last %}
+      {% endif %}
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <br>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+    
+{% endblock %}
+
+<br>
