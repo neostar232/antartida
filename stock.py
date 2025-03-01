@@ -5,6 +5,7 @@ from io import StringIO, BytesIO
 import datetime as dt
 import pandas as pd
 import numpy as np
+from .stock_service import add_stock, remove_stock
 
 bp = Blueprint("stock", __name__)
 
@@ -353,7 +354,8 @@ def list_masive_add_prods():
     return render_template("stock/in_multi_products.html", whs = whs, prods = prods)
 
 
-# Entrada masiva de productos (recepcion de remito del proveedor)
+# Entrada masiva de productos (recepcion de remito del proveedor) ID123
+# "Entradas manuales" en menú principal
 @bp.route("/add_massive", methods=["GET", "POST"])
 @login_required
 def add_massive_product():
@@ -397,7 +399,14 @@ def add_massive_product():
                 db.execute(query_us).fetchall()
                 db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
                 db.commit()
+
+                # Actualizo tabla de stock_actual
+                try:
+                    add_stock(prd, qin)
+                except Exception as e:
+                    print("Ha habido un error para actualizar la tabla de stock: ",e)
             flash('Productos ingresados correctamente')
+            
             return redirect(url_for("auth.redirectlink"))
     return render_template("stock/in_multi_products.html")
 
@@ -448,7 +457,7 @@ def enter_prods():
         return render_template("stock/enter_products.html", whs = whs, ocp = ocp)
 
 
-# Agrego los productos de la OC a la tabla de movimientos
+# Agrego los productos de la OC a la tabla de movimientos ID123
 @bp.route("/enter_wprods", methods=["GET", "POST"])
 @login_required
 def enter_wprods():
@@ -460,8 +469,8 @@ def enter_wprods():
         idprod = request.form.getlist("id_prodh") # Agregado
         expdate = request.form.getlist("exdt")
         flv = request.form.getlist("okq")
-        qsol = request.form.getlist("q_qs") # Agregado
-        qreal = request.form.getlist("q_rec")
+        qsol = request.form.getlist("q_qs") # Agregado - cantidad solicitada
+        qreal = request.form.getlist("q_rec") # cantidad real
         wdest = request.form.getlist("id_wh")
         # oper = session.get("user_id")
         for expdates, flvs, qreals, wdests, idmvs, idprods, qsols in zip (expdate, flv, qreal, wdest, idmv, idprod, qsol):
@@ -482,6 +491,16 @@ def enter_wprods():
             db.execute(query_us).fetchall()
             db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
             db.commit()
+
+            #Actualizo la tabla de stock actual
+            try:
+                print(idprods)
+                print(qreals)
+                add_stock(idprods, qreals)
+            except Exception as e:
+                print("Ha habido un error para actualizar la tabla de stock: ",e)
+
+                
         flash('Los productos ingresados se actualizaron correctamente')
         return redirect(url_for("auth.redirectlink"))
 
@@ -497,10 +516,12 @@ def available_ptt():
     return render_template("stock/move_stock.html", whs = whs, aptt = aptt)
 
 
-# Agrego los productos transferidos la tabla de stock
+# Agrego los productos transferidos la tabla de stock ID123
+# "Movimientos entre Almacenes" en menú principal
 @bp.route("/enter_transf", methods=["GET", "POST"])
 @login_required
 def enter_transf():
+    print("En enter_tranf")
     if request.method == "POST":
         dtoday = dt.date.today()
         prod = request.form.getlist('idprodh')
@@ -568,6 +589,17 @@ def enter_transf():
         #        db.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'temp_stock';")
         #        db.commit()
         # Hasta acá
+        try:
+            for index, row in transf.iterrows():
+                #warehouse a transferir
+                if int(row.get("id_warehouse")) in (12,13): #bar,cocina
+                    print("Removiendo stock")
+                    remove_stock(row.get('id_product'), row.get('q_prodt'))
+        except Exception as e:
+            print("Ha habido un error para actualizar la tabla de stock: ",e)
+                    
+                    
+                
 
         comprob = db.execute('SELECT COUNT(*) AS q FROM temp_transfer WHERE q_prodt > q_proda;').fetchone()[0]
         if comprob < 1:
@@ -588,7 +620,8 @@ def out_product():
     return render_template("stock/out_product.html", whs = whs, prods = prods)
 
 
-# Entrada al stock por salidas no convencionales (vencimiento, rotura, etc.)
+# Entrada al stock por salidas no convencionales (vencimiento, rotura, etc.) ID123
+# "Salidas Manuales por eventualidades" en menu principal
 @bp.route("/add_out_product", methods=["GET", "POST"])
 @login_required
 def add_out_product():
@@ -642,6 +675,13 @@ def add_out_product():
         db.execute(query_us).fetchall()
         db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
         db.commit()
+
+        #Actualizo la tabla de stock actual
+        try:
+            remove_stock(prd, qout)
+        except Exception as e:
+            print("Ha habido un error para actualizar la tabla de stock: ",e)
+
         flash('Baja ingresada correctamente')
         return redirect(url_for("auth.redirectlink"))
     return render_template("stock/out_products.html")

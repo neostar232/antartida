@@ -1,5 +1,12 @@
 import os
 from flask import Flask, redirect, url_for
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+from . import stock_controller
+
+#db = SQLAlchemy()
+#migrate = Migrate()
 
 def create_app(test_config=None):
     # Crea y configura una instancia de la aplicacion Flask
@@ -7,7 +14,9 @@ def create_app(test_config=None):
     app.config.from_mapping(
         SECRET_KEY='ysemarchoyasubarcolellamolibertad',  
         DATABASE = os.path.join(app.root_path, 'db3', 'ushuaia.db'),
+        #SQLALCHEMY_TRACK_MODIFICATIONS=False,  # Evita warnings innecesarios
     )
+    #app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(app.root_path, 'db3', 'ushuaia.db')}"
     if test_config is None:
         # load the instance config, if it exists, when not testing
         app.config.from_pyfile('config.py', silent=True)
@@ -27,6 +36,8 @@ def create_app(test_config=None):
     from . import db
     db.init_app(app)
 
+    #migrate.init_app(app, db)  # Inicializar Flask-Migrate
+
     # Aplicando los Blueprints a la app
     from . import auth, reports, suppliers, stock, config_vs, orders, cron
     
@@ -37,5 +48,6 @@ def create_app(test_config=None):
     app.register_blueprint(config_vs.bp)
     app.register_blueprint(orders.bp)
     app.register_blueprint(cron.bp)
+    app.register_blueprint(stock_controller.bp)
     app.add_url_rule("/", endpoint="index")
     return app

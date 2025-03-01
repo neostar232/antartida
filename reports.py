@@ -31,7 +31,7 @@ query_lp = """
             """
 
 # Listado de stock
-query_ls = """
+query_ls_vieja = """
             SELECT
                 b.id_product AS cod_producto,
                 s.tx_subcategory AS subcategoria,    
@@ -57,6 +57,29 @@ query_ls = """
             GROUP BY 1, 2, 3, 4, 5
             ORDER BY 2, 3, 4, 1
             """
+
+#nueva query que consulta la tabla stock_actual
+query_ls = """
+SELECT
+    b.id_product AS cod_producto,
+    s.tx_subcategory AS subcategoria,    
+    b.tx_product AS desc_producto,
+    u.tx_unity AS presentacion,  
+    b.num_reorder_point AS punto_repedido,
+    sa.quantity AS existencias,
+    CASE
+        WHEN b.num_reorder_point >= sa.quantity THEN 'Solicitar'
+        ELSE 'OK'
+    END AS control_stock
+FROM bt_product b
+INNER JOIN lkp_categories c ON b.id_category = c.id_category
+INNER JOIN lkp_subcategories s ON b.id_subcategory = s.id_subcategory
+INNER JOIN lkp_units u ON b.id_unity = u.id_unity
+INNER JOIN stock_actual sa ON b.id_product = sa.product_id
+WHERE b.flag_ctrl = 1
+ORDER BY s.tx_subcategory, b.tx_product, u.tx_unity, b.id_product;
+
+"""
 
 # Listado de stock en el punto de repedido o debajo
 query_lsr = "SELECT * FROM ( " + query_ls + " ) a WHERE control_stock = 'Solicitar'"
