@@ -5,14 +5,15 @@ import datetime as dt
 from io import StringIO, BytesIO
 # from werkzeug.exceptions import abort
 import pandas as pd
-
 from .auth import login_required
 from .db import get_db
 
 bp = Blueprint("config_vs", __name__)
 
+
 # Listado de Categorías
 query_categories = """SELECT * FROM lkp_categories ORDER BY tx_category"""
+
 
 # Relacion entre Categorías y Subcategorías
 query_relacion = """
@@ -27,10 +28,13 @@ query_relacion = """
 
 # Listado de Depósitos
 query_wh = """SELECT * FROM lkp_warehouse ORDER BY tx_warehouse"""
+
+
 # Utilizable para los casos de baja
 query_wh2 = """SELECT * FROM lkp_warehouse WHERE flag_ctrl <> 0 AND id_warehouse NOT IN (12, 13, 14, 15) ORDER BY tx_warehouse"""
 
-#Listado de productos vigentes
+
+# Listado de productos vigentes
 query_prods_full = """
                 SELECT
                     b.id_product,
@@ -48,8 +52,24 @@ query_prods = query_prods_full + " AND b.flag_ctrl = 1 ORDER BY 2"
 # Todos los productos, habilitados o no
 query_prods_ordered = query_prods_full + " ORDER BY 2"
 
+# Productos del punto de venta
+query_prods_sp = """SELECT
+                    p.id_product,
+                    s.tx_subcategory ||' - '|| b.tx_product ||' x '|| u.tx_unity AS desc_product
+                FROM bt_product_prices p INNER JOIN bt_product b
+                ON p.id_product = b.id_product
+                INNER JOIN lkp_categories c
+                ON b.id_category = c.id_category
+                INNER JOIN lkp_subcategories s
+                ON b.id_subcategory = s.id_subcategory
+                INNER JOIN lkp_units u
+                ON b.id_unity = u.id_unity
+                WHERE p.dt_to = '2100-12-31'
+                AND b.flag_ctrl = 1
+                ORDER BY 2;
+                """
 
-# Enlace a la Guía de Uso
+# Enlace a la Guía de Uso (sin utilización)
 @bp.route("/tda")
 @login_required
 def tda():
@@ -65,14 +85,13 @@ def listcates():
     return render_template("config_vs/add_subcategory.html", cates = cates)
 
 
+# Alta de Unidad de Medida
 @bp.route("/add_unity", methods=["GET", "POST"])
 @login_required
 def add_unity():
-    # Alta de Unidad de Medida
     if request.method == "POST":
         uni = request.form["tx_uni"]
         error = None
-
         if not uni:
             error = "La unidad de medida es dato obligatorio"
         if error is not None:
@@ -84,13 +103,13 @@ def add_unity():
                        )
             db.commit()
             return redirect(url_for("auth.redirectlink"))
-
     return render_template("config_vs/add_unity.html")
 
+
+# Alta de Categoría
 @bp.route("/add_category", methods=["GET", "POST"])
 @login_required
 def add_category():
-    # Alta de Categoría
     if request.method == "POST":
         cate = request.form["tx_cate"]
         error = None
@@ -108,10 +127,11 @@ def add_category():
             return redirect(url_for("auth.redirectlink"))
     return render_template("config_vs/add_category.html")
 
+
+# Alta de subategoría
 @bp.route("/add_subcategory", methods=["GET", "POST"])
 @login_required
 def add_subcategory():
-    # Alta de subategoría
     if request.method == "POST":
         scate = request.form["tx_scate"]
         idcate = request.form["id_cate"]
@@ -132,10 +152,11 @@ def add_subcategory():
             return redirect(url_for("auth.redirectlink"))
     return render_template("config_vs/add_subcategory.html")
 
+
+# Alta de Almacén
 @bp.route("/add_wh", methods=["GET", "POST"])
 @login_required
 def add_wh():
-    # Alta de subategoría
     if request.method == "POST":
         nwh = request.form["tx_wh"]
         descrip = request.form["desc_wh"]
@@ -153,7 +174,6 @@ def add_wh():
                        )
             db.commit()
             return redirect(url_for("auth.redirectlink"))
-
     return render_template("config_vs/add_wh.html")
 
 
@@ -165,10 +185,11 @@ def listwarehouses():
     whs = db.execute(query_wh2).fetchall()
     return render_template("config_vs/del_wh.html", whs = whs)
 
+
+# Inhabilitación de depósito (baja lógica)
 @bp.route("/del_wh", methods=["GET", "POST"])
 @login_required
 def del_wh():
-    # Inhabilitación de depósito
     if request.method == "POST":
         idwh = request.form["id_wh"]
         error = None
@@ -185,6 +206,7 @@ def del_wh():
     return render_template("config_vs/del_wh.html")
 
 
+# Modificación de depósito
 @bp.route("/mod_wh")
 @login_required
 def listmwarehouses():
@@ -193,10 +215,11 @@ def listmwarehouses():
     whs = db.execute(query_wh2).fetchall()
     return render_template("config_vs/mod_wh.html", whs = whs)
 
+
+# Modificación de depósito
 @bp.route("/mod_wh", methods=["GET", "POST"])
 @login_required
 def mod_wh():
-    # Modificación de depósito
     if request.method == "POST":
         idmwh = request.form["id_mwh"]
         tmwh = request.form["tx_mwh"]
@@ -240,6 +263,7 @@ def export_relcs():
         response.headers["Content-Type"] = "application/vnd.ms-excel"
         return response
 
+
 # Muestro los productos en la página correspondiente
 @bp.route("/add_price")
 @login_required
@@ -279,3 +303,41 @@ def add_price():
             flash('El precio fue actualizado correctamente')
             return redirect(url_for("auth.redirectlink"))      
     return render_template("config_vs/add_price.html")
+
+
+# Busco los productos del punto de venta
+@bp.route("/sp_sel_prod")
+@login_required
+def sp_select():
+    db = get_db()
+    prods_sp = db.execute(query_prods_sp).fetchall()
+    return render_template("config_vs/sp_sel_prod.html", prods_sp = prods_sp)
+
+# Ejecuto la actualización de los precios de Venta
+@bp.route("/sp_sel_prod", methods=["GET", "POST"])
+@login_required
+def add_price_sp():
+    if request.method == "POST":
+        dtoday = dt.date.today()
+        idpr = request.form["id_aprp"]
+        prusd = request.form["nu_usd_price"]
+        oper = session.get("user_id")
+        error = None
+        if not idpr:
+            error = "Debe seleccionar el producto"
+        if not prusd:
+            error = "Debe ingresar el precio"
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            db.execute("UPDATE bt_product_prices SET dt_to = ? WHERE id_product = ? AND dt_to = '2100-12-31'",
+                       (dtoday, idpr)
+                      )
+            db.execute("INSERT INTO bt_product_prices (id_product, nu_price_usd, dt_from, id_user) VALUES (?,?,?,?)",
+                        (idpr, prusd, dtoday, oper),
+                        )
+            db.commit()
+            flash('El precio fue actualizado correctamente')
+            return redirect(url_for("auth.redirectlink"))      
+    return render_template("config_vs/sp_sel_prod.html")

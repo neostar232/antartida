@@ -84,7 +84,7 @@ def login():
         elif not check_password_hash(user['tx_psw'], password):
             error = "PSW Incorrecta."
         # Chequeo el rol del usuario y accedo en consecuencia
-        if error is None and (user['id_role'] != 2):
+        if error is None and (user['id_role'] ==1):
             # Almacena el usuario en una nueva sesion y regresa al index
             session.clear()
             session['user_id'] = user['id_user']
@@ -102,6 +102,15 @@ def login():
             db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
             db.commit()
             return redirect(url_for("reports.panelb")) # --> micropanel
+        if error is None and (user['id_role'] == 5):
+            # Almacena el usuario en una nueva sesion y regresa al index
+            session.clear()
+            session['user_id'] = user['id_user']
+            session['role'] = user['id_role']
+            # Agrego el ingreso a la tabla de sesiones
+            db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
+            db.commit()
+            return redirect(url_for("reports.panelpv")) # --> micropanel
         flash(error)
     return render_template("auth/login.html")
 
@@ -110,10 +119,12 @@ def login():
 def redirectlink():
         rolx = session.get("role")
         error = None
-        if error is None and rolx != 2:
+        if error is None and rolx == 1:
             return redirect(url_for("reports.panel"))
         if error is None and rolx == 2:
             return redirect(url_for("reports.panelb"))
+        if error is None and rolx == 5:
+            return redirect(url_for("reports.panelpv"))
 
 
 @bp.route("/logout")
@@ -149,6 +160,7 @@ def go_del_user():
      db.commit()
      return render_template('auth/del_user.html', duser = duser)
 
+
 # Eliminacion logica de usuario
 @bp.route("/del_user", methods=("GET", "POST"))
 @login_required
@@ -171,6 +183,7 @@ def go_mod_user():
     duser = db.execute("SELECT * FROM bt_users WHERE id_user <> (?) ORDER BY tx_name", (uact,))
     db.commit()
     return render_template('auth/go_mod_user.html', duser = duser)
+
 
 # Selecciono el usuario a modificar
 @bp.route("/sel_mod_user", methods=("GET", "POST"))
@@ -220,3 +233,5 @@ def mod_user():
                 return redirect(url_for("auth.redirectlink"))
         flash(error)
     return render_template("auth/register.html")
+
+

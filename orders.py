@@ -11,8 +11,16 @@ bp = Blueprint("orders", __name__)
 # Traigo ultima instancia de orden, a fin de otorgar uan numeracion temporal
 query_num_ord = """SELECT IFNULL(MAX(id_order), 0) + 1 AS mxm FROM bt_order_header;"""
 
+
 # Listado de categorias
 query_cat = """SELECT * FROM lkp_categories ORDER BY tx_category"""
+
+
+# Listado de subcategorias - se filtran en el formulario
+query_cat_sel = """
+                SELECT * FROM lkp_subcategories WHERE id_category IN (
+                """
+
 
 # Listado de productos - se filtran en el formulario
 query_pr_sel = """
@@ -20,7 +28,8 @@ query_pr_sel = """
                 b.id_product,
                 s.tx_subcategory ||': '|| b.tx_product ||' - ' || u.tx_unity AS producto,
                 c.id_category,
-                IFNULL(SUM(p.q_stock),0) AS existencias,
+                -- IFNULL(SUM(p.q_stock),0) AS existencias, -- Modificado 20250103
+                IFNULL(SUM(p.q_batch_balance),0) AS existencias,
                 0 AS nuq
             FROM bt_product b INNER JOIN lkp_categories c
             ON b.id_category = c.id_category
@@ -33,15 +42,11 @@ query_pr_sel = """
             LEFT JOIN lkp_warehouse w
             ON p.id_warehouse = w.id_warehouse
             WHERE b.flag_ctrl = 1
-            -- AND p.q_stock > 0
+            -- AND w.id_warehouse <= 11 -- Agregado 20250103 // Se elimina condición 20250510
             AND c.id_category NOT IN (SELECT DISTINCT id_category FROM temp_order)
             AND c.id_category IN (
             """
 
-# Listado de categorias - se filtran en el formulario
-query_cat_sel = """
-                SELECT * FROM lkp_subcategories WHERE id_category IN (
-                """
 
 # Productos en Preorden
 query_to = """SELECT
@@ -231,7 +236,7 @@ query_clone2 = """
 
 # Muestro las categorias a seleccionar para luego, traerme los productos
 # Si la preorden está cerrada (vo == 1), no permito avanzar e informo la situacion
-@bp.route("/ordering_sc")
+@bp.route("/orders/ordering_sc")
 @login_required
 def ordering_sc():
     db = get_db()
@@ -245,7 +250,7 @@ def ordering_sc():
 
 
 # Muestro los productos a seleccionar, dependiendo de la/s categoria/s seleccionadas
-@bp.route("/ordering_sp", methods=["GET", "POST"])
+@bp.route("/orders/ordering_sp", methods=["GET", "POST"])
 @login_required
 def ordering_sp():
     if request.method == "POST":
@@ -262,7 +267,7 @@ def ordering_sp():
 
 
 # Agrego productos a la preorden
-@bp.route("/add_to_order", methods=("GET", "POST"))
+@bp.route("/orders/add_to_order", methods=("GET", "POST"))
 @login_required
 def add_to_order():
     if request.method == "POST":
@@ -285,7 +290,6 @@ def add_to_order():
                                (ids, cates, prods, qs, s_exists),
                                )
                 # Borro los productos que no cuentan con cantidad o la cantidad es vacia
-                # db.execute("DELETE FROM temp_order WHERE nuq = 0 OR nuq IS NULL OR nuq = '' ")
                 query_cont_order = """SELECT id_prod, tx_prod, SUM(nuq) AS nuq FROM temp_order WHERE nuq > 0 GROUP BY 1, 2 ORDER BY tx_prod"""
                 content = db.execute(query_cont_order).fetchall()
                 db.execute("UPDATE temp_order SET nuq = 0 WHERE LENGTH(nuq) < 1 OR nuq glob '*[^0-9]*';")
@@ -295,13 +299,13 @@ def add_to_order():
 
 
 # Visualizo productos existentes en la preorden
-@bp.route("/view_order", methods=("GET", "POST"))
+@bp.route("/orders/view_order", methods=("GET", "POST"))
 @login_required
 def view_order():
     db = get_db()
     ctrl = db.execute('SELECT COUNT(*) AS q FROM temp_order;').fetchone()[0]
     if ctrl < 1:
-        flash('No existe una preorden para ser cerrada.')
+        flash('No existe una preorden para visualizar.')
         return redirect(url_for("auth.redirectlink"))  
     complete = query_to + " WHERE nuq > 0 ORDER BY tx_prod"
     to_view = db.execute(complete).fetchall()
@@ -312,7 +316,7 @@ def view_order():
     return render_template("orders/order_view.html", to_view = to_view)
 
 # Selecciono productos para una futura eliminacion (no se utiliza, la eliminacion es masiva)
-@bp.route("/sel_remove_to_order", methods=("GET", "POST"))
+@bp.route("/orders/sel_remove_to_order", methods=("GET", "POST"))
 @login_required
 def sel_remove_to_order():
     db = get_db()
@@ -322,7 +326,7 @@ def sel_remove_to_order():
 
 
 # Borrado de productos de la preorden
-@bp.route("/ax_remove_to_order", methods=("GET", "POST"))
+@bp.route("/orders/ax_remove_to_order", methods=("GET", "POST"))
 @login_required
 def ax_remove_to_order():
     if request.method == "POST":
@@ -335,7 +339,7 @@ def ax_remove_to_order():
 
 
 # Selecciono productos existentes en la preorden para update
-@bp.route("/sel_upd_order", methods=("GET", "POST"))
+@bp.route("/orders/sel_upd_order", methods=("GET", "POST"))
 @login_required
 def sel_upd_order():
     db = get_db()
@@ -354,8 +358,8 @@ def sel_upd_order():
     return render_template("orders/ordering_update.html", to_upd = to_upd)
 
 
-# Modifico cantidad de productos a la preorden
-@bp.route("/update_order", methods=("GET", "POST"))
+# Modifico cantidad de productos en la preorden
+@bp.route("/orders/update_order", methods=("GET", "POST"))
 @login_required
 def update_order():
     if request.method == "POST":
@@ -381,7 +385,7 @@ def update_order():
 
 
 # Creo la Orden de Compra a partir de la preorden
-@bp.route("/go_generate_order", methods=("GET", "POST"))
+@bp.route("/orders/go_generate_order", methods=("GET", "POST"))
 @login_required
 def go_generate_order():
     db = get_db()
@@ -402,7 +406,7 @@ def go_generate_order():
 # Ingresa todos los productos a la tabla de ingresog
 # Vacia la tabla de preordenes
 # Vuelve a 0 el autoincremental de la tabla de preordenes
-@bp.route("/generate_order", methods=("GET", "POST"))
+@bp.route("/orders/generate_order", methods=("GET", "POST"))
 @login_required
 def generate_order():
     if request.method == "POST":
@@ -421,9 +425,9 @@ def generate_order():
     return redirect(url_for("auth.redirectlink"))
 
 # Cabeceras de las ordenes cerradas, para ser seleccionadas para gestionar
-@bp.route("/sel_close_order")
+@bp.route("/orders/view_closed_orders")
 @login_required
-def sel_close_order():
+def view_closed_orders():
     db = get_db()
     ctrl_close_order = db.execute('SELECT COUNT(*) AS q FROM bt_order_header WHERE fl_close_order <> 2;').fetchone()[0]
     if ctrl_close_order < 1:
@@ -434,7 +438,7 @@ def sel_close_order():
     return render_template("orders/order_select.html", closed_order = closed_order)
 
 # Detalle de las ordenes cerradas - Vista en pantalla
-@bp.route("/order_detail", methods=("GET", "POST"))
+@bp.route("/orders/order_detail", methods=("GET", "POST"))
 @login_required
 def order_detail():
     if request.method == "POST":
@@ -451,7 +455,7 @@ def order_detail():
         
 
 # Descarga detalle de la orden seleccionada para trabajar en excel
-@bp.route("/order_detail_dl", methods=("GET", "POST"))
+@bp.route("/orders/order_detail_dl", methods=("GET", "POST"))
 @login_required
 def order_detail_dl():
     io = BytesIO()
@@ -469,7 +473,7 @@ def order_detail_dl():
         return response
 
 # Descarga en PDF para enviar al proveedor
-@bp.route("/order_detail_pdf", methods=("GET", "POST"))
+@bp.route("/orders/order_detail_pdf", methods=("GET", "POST"))
 @login_required
 def order_detail_pdf():
         if request.method == "POST":
@@ -494,7 +498,7 @@ def order_detail_pdf():
                 return render_pdf(HTML(string=html))
 
 # Accedo al cierre de la preorden
-@bp.route("/go_close_preorder", methods=("GET", "POST"))
+@bp.route("/orders/go_close_preorder", methods=("GET", "POST"))
 @login_required
 def go_close_preorder():
     db = get_db()
@@ -502,7 +506,9 @@ def go_close_preorder():
     if ctrl_comp < 1:
         flash('No existe una preorden para cerrar.')
         return redirect(url_for("auth.redirectlink"))
+     # ur = user role
     ur = session.get("role")
+    # vo = verificación orden
     vo = db.execute(f"""SELECT COUNT(DISTINCT fl_close) AS marca FROM temp_order WHERE fl_close = '{ur}' """).fetchone()[0]
     if vo == 1:
         flash('No existe una preorden para ser cerrada.')
@@ -510,7 +516,7 @@ def go_close_preorder():
     return render_template('orders/ordering_genpo.html')
 
 # Cierra preorden
-@bp.route("/close_preorder", methods=("GET", "POST"))
+@bp.route("/orders/close_preorder", methods=("GET", "POST"))
 @login_required
 def close_preorder():
     if request.method == "POST":
@@ -523,7 +529,7 @@ def close_preorder():
 
 
 # Revierte el cierre de la preorden para cargar mas productos
-@bp.route("/rev_close_preorder", methods=("GET", "POST"))
+@bp.route("/orders/rev_close_preorder", methods=("GET", "POST"))
 @login_required
 def rev_close_preorder():
     ur = session.get("role")
@@ -540,7 +546,7 @@ def rev_close_preorder():
 
 
 # Cierra orden de Compra
-@bp.route("/close_order", methods=("GET", "POST"))
+@bp.route("/orders/close_order", methods=("GET", "POST"))
 @login_required
 def close_order():
         if request.method == "POST":
@@ -553,7 +559,7 @@ def close_order():
         
 
 # Accedo a la página de reversión de órdenes
-@bp.route("/accessing_rev")
+@bp.route("/orders/accessing_rev")
 @login_required
 def accessing_rev():
     db = get_db()
@@ -565,7 +571,7 @@ def accessing_rev():
 
 
 # Reversión Orden de compra
-@bp.route("/revert_order", methods=("GET", "POST"))
+@bp.route("/orders/revert_order", methods=("GET", "POST"))
 @login_required
 def revert_order():
     db = get_db()
@@ -584,18 +590,23 @@ def revert_order():
 
 
 # (Listo) Genero preorden seleccionando una OC cerrada anteriormente
-@bp.route("/sel_preorder", methods=("GET", "POST"))
+@bp.route("/orders/sel_preorder", methods=("GET", "POST"))
 @login_required
 def sel_preorder():
     db = get_db()
+    qto = db.execute(f"""SELECT COUNT(*) AS cantidad FROM temp_order;""").fetchone()[0]
+    if qto > 0:
+        flash('Ya existe una preorden en curso. Aguarde hasta que se cargue una nueva o finalice el proceso de compra actual.')
+        return redirect(url_for("auth.redirectlink"))
     # Busco ordenes de compra generadas anteriormente
-    search_purch_order = db.execute('SELECT dt_order, id_order FROM bt_order_header ORDER BY 2 DESC;').fetchall()
-    db.commit()
-    return render_template("orders/purch_order_enum.html", search_purch_order = search_purch_order)
+    else:
+        search_purch_order = db.execute('SELECT dt_order, id_order FROM bt_order_header ORDER BY 2 DESC;').fetchall()
+        db.commit()
+        return render_template("orders/purch_order_enum.html", search_purch_order = search_purch_order)
 
 
-# (Detallo) OC's cerradas para cortejar contenido
-@bp.route("/detail_preorder", methods=("GET", "POST"))
+# (Detallo) OC's cerradas para cotejar contenido
+@bp.route("/orders/detail_preorder", methods=("GET", "POST"))
 @login_required
 def detail_preorder():
         # Busco ordenes de compra generadas anteriormente
@@ -605,8 +616,9 @@ def detail_preorder():
         db.commit()
         return render_template("reports/prod_preorder_enum.html", spo = spo)
 
+
 # Clono orden
-@bp.route("/clone_preorder", methods=("GET", "POST"))
+@bp.route("/orders/clone_preorder", methods=("GET", "POST"))
 @login_required
 def clone_preorder():
     db = get_db()

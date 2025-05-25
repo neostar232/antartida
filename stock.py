@@ -2,7 +2,8 @@ from flask import Blueprint, g, flash, redirect, render_template, url_for, make_
 from .auth import login_required
 from .db import get_db
 from io import StringIO, BytesIO
-import datetime as dt
+from datetime import datetime
+import pytz as tz
 import pandas as pd
 import numpy as np
 
@@ -63,10 +64,18 @@ query_exist = query_exist_base + "GROUP BY 1, 2 ORDER BY 2, 1"
 query_exist_expiry = query_exist_base + " AND p.dt_expiry <= DATE('NOW','+1 MONTHS') GROUP BY 1, 2 ORDER BY 2, 1"
 
 # Listado de atributos de alta fijos: categorías, subcategorías, unidad de medida
-query_cat = """SELECT * FROM lkp_categories ORDER BY tx_category"""
-query_scat = """SELECT * FROM lkp_subcategories ORDER BY tx_subcategory"""
-query_units = """SELECT * FROM lkp_units ORDER BY tx_unity"""
-query_wh = """SELECT * FROM lkp_warehouse WHERE flag_ctrl = 1"""
+query_cat = """
+            SELECT * FROM lkp_categories ORDER BY tx_category
+            """
+query_scat = """
+            SELECT * FROM lkp_subcategories ORDER BY tx_subcategory
+            """
+query_units = """
+            SELECT * FROM lkp_units ORDER BY tx_unity
+            """
+query_wh = """
+            SELECT * FROM lkp_warehouse WHERE flag_ctrl = 1
+            """
 
 # Ordenes de compra con posibilidad de ingresar productos
 query_sel_oc = """
@@ -136,7 +145,8 @@ query_transf = """
 query_add_transf = """
             INSERT INTO bt_stock (dt_io, id_product, id_warehouse, dt_expiry, q_inn)
             SELECT
-                t.dt_io,
+                -- t.dt_io, -- Modificado 20250103
+                DATETIME('NOW') AS dt_io,
                 t.id_product,
                 t.id_warehouse,
                 b.dt_expiry,
@@ -156,10 +166,12 @@ query_us = """
                 id_warehouse,
                 dt_expiry,
                 q_batch_balance,
-                SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock
+                -- SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock
+                SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY id_io, dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock
             FROM bt_stock
             WHERE q_batch_balance <> 0
-            AND id_warehouse < 12;
+            AND id_warehouse < 12
+            ORDER BY 2, 3, 1;
             """
 
 # Creo temporal para agregar las confirmaciones de la OC en el stock
@@ -210,7 +222,7 @@ query_upd_out = """
 
 
 # Ejecuto los listados de atributos para que se direccionen a las páginas dónde deben utilizarse
-@bp.route("/stock")
+@bp.route("/stock/listadd_prods")
 @login_required
 def listadd_prods():
     db = get_db()
@@ -220,7 +232,7 @@ def listadd_prods():
     return render_template("stock/add_product.html", cates = cates, subcates = subcates, units = units)
 
 
-@bp.route("/stock", methods=["GET", "POST"])
+@bp.route("/stock/add_product", methods=["GET", "POST"])
 @login_required
 def add_product():
     # Alta de producto
@@ -254,7 +266,8 @@ def add_product():
     return render_template("stock/add_product.html")
 
 
-@bp.route("/del_sp")
+# Completa la lista desplegable de productos para dar de baja
+@bp.route("/stock/del_sp")
 @login_required
 def list_del_single_prod():
     db = get_db()
@@ -262,7 +275,8 @@ def list_del_single_prod():
     return render_template("stock/del_single_product.html", prods = prods)
 
 
-@bp.route("/del_sp", methods=["GET", "POST"])
+# Realiza la accion de inhabilitación sobre el producto seleccionado
+@bp.route("/stock/del_sp", methods=["GET", "POST"])
 @login_required
 def del_sp():
     # Inhabilitación de productos
@@ -275,13 +289,14 @@ def del_sp():
             flash(error)
         else:
             db = get_db()
-            db.execute("UPDATE bt_product SET flag_ctrl = 0 WHERE id_product = ?", (iddsp))
+            db.execute("UPDATE bt_product SET flag_ctrl = 0 WHERE id_product = ?", (iddsp,)).fetchall()
             db.commit()
             return redirect(url_for("auth.redirectlink"))
     return render_template("stock/del_single_product.html")
 
 
-@bp.route("/del_mp")
+# Alimenta el cuadro de productos para el deshabilitado masivo
+@bp.route("/stock/del_mp")
 @login_required
 def list_del_multi_prod():
     db = get_db()
@@ -289,7 +304,8 @@ def list_del_multi_prod():
     return render_template("stock/del_multi_products.html", prods = prods)
 
 
-@bp.route("/del_mp", methods=["GET", "POST"])
+# Realiza la accion de inhabilitación sobre los productos seleccionados
+@bp.route("/stock/del_mp", methods=["GET", "POST"])
 @login_required
 def del_mp():
     # Inhabilitación de productos
@@ -309,22 +325,24 @@ def del_mp():
     return render_template("stock/del_multi_products.html")
 
 
-@bp.route("/moves", methods=["GET", "POST"])
+# Inicialmente no tiene funcionalidad (form_dates.html no existe)
+@bp.route("/stock/moves", methods=["GET", "POST"])
 @login_required
 def moves():
     return render_template("stock/form_dates.html")
 
 
-@bp.route("/prodsexist")
+# Listado de productos en existencia (link: Disponibilidad)
+@bp.route("/stock/exist")
 @login_required
 def prodsexist():
-    """ Listado de productos en existencia """
     db = get_db()
     prd_exist = db.execute(query_exist).fetchall()
     return render_template("stock/exist.html", prd_exist = prd_exist)
 
+
 # Exportacion de las existencias por almacen
-@bp.route("/export_we")
+@bp.route("/stock/export_we")
 @login_required
 def export_we():
     io = BytesIO()
@@ -343,7 +361,7 @@ def export_we():
 
 
 # Detalle de los almacenes para seleccionar en el alta masiva
-@bp.route("/add_massive")
+@bp.route("/stock/add_massive")
 @login_required
 def list_masive_add_prods():
     db = get_db()
@@ -354,11 +372,12 @@ def list_masive_add_prods():
 
 
 # Entrada masiva de productos (recepcion de remito del proveedor)
-@bp.route("/add_massive", methods=["GET", "POST"])
+@bp.route("/stock/add_massive", methods=["GET", "POST"])
 @login_required
 def add_massive_product():
     if request.method == "POST":
-        dtoday = dt.date.today()
+        dtodayfull = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
+        dtoday = datetime.now().strftime('%Y-%m-%d') # Modificado 20250103
         iddmp = request.form.getlist("id_dmp")
         idwh = request.form["id_wh"]
         odate = request.form["order_date"]
@@ -368,6 +387,7 @@ def add_massive_product():
         oc = request.form["id_oc"]
         csup = '99999999999'
         flg = 1
+        qexit = 0
         oper = session.get("user_id")
         error = None
         if not idwh:
@@ -389,8 +409,8 @@ def add_massive_product():
                            (dtoday, csup, oc, odate, ordernum, prd, expdate, idwh, qin, flg, oper),
                             )
                 # Agrego productos ingresados al stock
-                db.execute("INSERT INTO bt_stock (dt_io, id_product, id_warehouse, dt_expiry, q_inn, q_batch_balance) VALUES (?,?,?,?,?,?)",
-                           (dtoday, prd, idwh, expdate, qin, qin)
+                db.execute("INSERT INTO bt_stock (dt_io, id_product, id_warehouse, dt_expiry, q_inn, q_out, q_batch_balance) VALUES (?,?,?,?,?,?,?)",
+                           (dtodayfull, prd, idwh, expdate, qin, qexit, qin)
                            )
                 # Actualizo las partidas y el stock general
                 db.execute("""DROP TABLE IF EXISTS nsv""")
@@ -403,11 +423,11 @@ def add_massive_product():
 
 
 # Exportacion de las existencias a vencer por almacen
-@bp.route("/export_wee")
+@bp.route("/stock/export_wee")
 @login_required
 def export_wee():
     io = BytesIO()
-    with pd.ExcelWriter(io,  engine='openpyxl') as writer:
+    with pd.ExcelWriter(io, engine='openpyxl') as writer:
         db = get_db()
         list = pd.read_sql_query(query_exist_expiry, db)
         pd.DataFrame(list).to_excel(writer, sheet_name='Existencias a vencer', index=False)
@@ -419,7 +439,7 @@ def export_wee():
 
 
 # Muestra las OC con posibilidad de ingresar los productos
-@bp.route("/select_oc")
+@bp.route("/stock/select_oc")
 @login_required
 def select_oc():
     db = get_db()
@@ -431,14 +451,14 @@ def select_oc():
 
 
 # Envío a un formulario, los productos de la OC a ingresar a depósito
-@bp.route("/enter_prods", methods=["GET", "POST"])
+@bp.route("/stock/enter_prods", methods=["GET", "POST"])
 @login_required
 def enter_prods():
     if request.method == "POST":
         orselec = request.form["seloc"]
         lphrase = ' GROUP BY 1, 2, 3, 4, 5 HAVING (IFNULL(o.fl_sok, 0) + IFNULL(o.q_real, 0)) < 1'
         db = get_db()
-        whexc = ' AND id_warehouse NOT IN (12, 13, 14, 15) ORDER BY tx_warehouse'
+        whexc = ' AND id_warehouse NOT IN (13, 14, 15) ORDER BY tx_warehouse'
         whs = db.execute(query_wh + whexc).fetchall()
         query_occ = query_oc + ' AND h.id_order = ' + orselec + lphrase
         ocp = db.execute(query_occ).fetchall()
@@ -448,12 +468,12 @@ def enter_prods():
         return render_template("stock/enter_products.html", whs = whs, ocp = ocp)
 
 
-# Agrego los productos de la OC a la tabla de movimientos
-@bp.route("/enter_wprods", methods=["GET", "POST"])
+# Agrego los productos de la OC a la tabla de movimientos y de stock
+@bp.route("/stock/enter_wprods", methods=["GET", "POST"])
 @login_required
 def enter_wprods():
     if request.method == "POST":
-        dtoday = dt.date.today() # Agregado
+        dtodayfull = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
         idmv = request.form.getlist("id_move")
         odate = request.form["odt"]
         onum = request.form["nuo"]
@@ -473,9 +493,9 @@ def enter_wprods():
             db.execute(query_insocs).fetchall()
             # Agrego los prods ingresados de la OC a tabla temporal
             db.execute("INSERT INTO ttis (dt_io, id_product, id_warehouse, dt_expiry, q_inn, q_inn_real, fl_ok) VALUES (?,?,?,?,?,?,?)",
-                       (dtoday, idprods, wdests, expdates, qsols, qreals, flvs),
+                       (dtodayfull, idprods, wdests, expdates, qsols, qreals, flvs),
                        )
-            # Inserto los productos de la temporal en la tabla de stock
+            # Inserto los productos de la temporal en la tabla de stock (bt_stock)
             db.execute(query_addocst).fetchall()
             # Actualizo las partidas y el stock general
             db.execute("""DROP TABLE IF EXISTS nsv""")
@@ -488,7 +508,7 @@ def enter_wprods():
 
 # Operaciones entre depósitos
 # Disponibilidad de productos
-@bp.route("/available_ptt")
+@bp.route("/stock/available_ptt")
 @login_required
 def available_ptt():
     db = get_db()
@@ -498,18 +518,18 @@ def available_ptt():
 
 
 # Agrego los productos transferidos la tabla de stock
-@bp.route("/enter_transf", methods=["GET", "POST"])
+@bp.route("/stock/enter_transf", methods=["GET", "POST"])
 @login_required
 def enter_transf():
     if request.method == "POST":
-        dtoday = dt.date.today()
+        dtodayfull = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
         prod = request.form.getlist('idprodh')
         move = request.form.getlist('idioh')
         qtr = request.form.getlist('q_trf')
         qav = request.form.getlist('avai')
         wdest = request.form.getlist('id_wh')
         # Creo DF's con los datos recibidos desde el formulario de carga - Disponible y a Transferir
-        dict_transf = {'id_io': move, 'dt_io': dtoday, 'id_product': prod, 'id_warehouse': wdest, 'q_proda': qav, 'q_prodt': qtr}
+        dict_transf = {'id_io': move, 'dt_io': dtodayfull, 'id_product': prod, 'id_warehouse': wdest, 'q_proda': qav, 'q_prodt': qtr}
         transx = pd.DataFrame(dict_transf)
         # Creo dataframe con los valores obtenidos de las listas y tuplas
         transf = pd.DataFrame(transx, columns=['id_io', 'dt_io', 'id_product', 'id_warehouse', 'q_proda', 'q_prodt'])
@@ -533,9 +553,11 @@ def enter_transf():
         db.executemany(sql_update_query, stockx)
 
         # db.execute(query_upd_out).fetchall()
-        db.execute("""UPDATE bt_stock SET q_stock = 0 WHERE q_batch_balance = 0""")
+        upd_qs0 = """UPDATE bt_stock SET q_stock = 0 WHERE q_batch_balance = 0;"""
+        db.execute(upd_qs0).fetchall()
         db.execute(query_add_transf).fetchall()
-        db.execute("""UPDATE bt_stock SET q_batch_balance = (q_inn - IFNULL(q_out, 0))""")
+        upd_qbb = """UPDATE bt_stock SET q_batch_balance = (q_inn - IFNULL(q_out, 0));"""
+        db.execute(upd_qbb).fetchall()
         db.execute("""DROP TABLE IF EXISTS nsv""")
         db.execute(query_us).fetchall()
         db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
@@ -573,12 +595,12 @@ def enter_transf():
         if comprob < 1:
             flash('Los productos fueron transferidos correctamente.')
             return redirect(url_for("auth.redirectlink"))
-        flash('Los productos fueron transferidos correctamente, pero hubo intento de transferir por demás de la existencia. Ver listado.')
+        flash('Los productos fueron transferidos correctamente, pero hubo intento de transferir por encima de la existencia. Ver listado.')
         return redirect(url_for("auth.redirectlink"))
 
 
 # Detalle de los almacenes para seleccionar en el alta masiva
-@bp.route("/out_product")
+@bp.route("/stock/out_product")
 @login_required
 def out_product():
     db = get_db()
@@ -589,11 +611,11 @@ def out_product():
 
 
 # Entrada al stock por salidas no convencionales (vencimiento, rotura, etc.)
-@bp.route("/add_out_product", methods=["GET", "POST"])
+@bp.route("/stock/add_out_product", methods=["GET", "POST"])
 @login_required
 def add_out_product():
     if request.method == "POST":
-        dtoday = dt.date.today()
+        dtodayfull = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
         tx_mot = request.form["tx_ca"]
         prd = request.form["id_dop"]
         idwh = request.form["id_wh"]
@@ -604,8 +626,6 @@ def add_out_product():
         reason = tx_mot + ': ' + txro
         db = get_db()
         # Compruebo la posibilidad de dar la baja de acuerdo a los parámetros obtenidos
-        # AND DATE(dt_expiry) = DATE((?))
-
         db.execute("""DROP TABLE IF EXISTS ptrs""")
         ctt = """CREATE TEMPORARY TABLE ptrs AS
                 SELECT
@@ -632,7 +652,7 @@ def add_out_product():
         #                    (dtoday, prd, idwhr, expdate, qout, qout, reason)
         #                    )
         db.execute("INSERT INTO bt_stock (dt_io, id_product, id_warehouse, q_inn, q_batch_balance, tx_reason) VALUES (?,?,?,?,?,?)",
-                           (dtoday, prd, idwhr, qout, qout, reason)
+                           (dtodayfull, prd, idwhr, qout, qout, reason)
                            )
         # numrow = db.execute("SELECT id_io FROM ptrs WHERE rn = 1;")
         upd_out = """UPDATE bt_stock SET q_out = IFNULL(q_out, 0) + (?), q_batch_balance = (IFNULL(q_batch_balance, 0) - (?)) WHERE id_io = (SELECT id_io FROM ptrs WHERE rn = 1)"""

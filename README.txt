@@ -1,14 +1,32 @@
 Voy a ir dejando acá, datos relevantes y otros no tanto
 
 * Orden para arrancar la aplicación desde la consola:
-flask --app antartica_v2 run --debug
+flask --app usuahia run --debug
 
 * Usuarios y passwords
 adm@ushuaia.com // pswdeadm
 enc@usuahia.com // pswdeenc
-autom@ushuaia.com // pswdeautom -- usuario para correr automatizaciones, es testimonial
+pv1@@ushuaia.com // pswdepv1 -- Usuario del Bar
+pv2@@ushuaia.com // pswdepv2 -- Usuario del Comedor
+pv3@@ushuaia.com // pswdepv3 -- Usuario del Room Service
 
 ############################# Voy dejando acá las ultimas actualizaciones con fecha #############################
+18/05
+* Se reemplaza temporalmente, la bd normalmente utilizada por la version "_desa"
+* Hay elementos para eliminar, los archuvos que componen la app van a ir variando constantemente
+* Se crearon 3 nuevos usuarios/psw:
+pv1@ushuaia.com/pswdepv1
+pv2@ushuaia.com/pswdepv2
+pv3@ushuaia.com/pswdepv3
+
+y que corresponden, respectivamente a:
+Usuario de Bar
+Usuario del Comedor
+Usuario del Room Service
+
+Se modifican las formas de tratar las fechas: instalar pytz si es que no está instalado
+
+
 11/09
 Instalar numpy (si es que no está instalado ya)
 *** CORREGIDO

@@ -94,20 +94,20 @@ query_outorder = """
                 s.tx_subcategory ||': '|| b.tx_product ||' (' || u.tx_unity ||')' AS producto,
                 p.id_order AS oc,
                 CASE
-                    WHEN cuit_supplier <> 99999999999 THEN p.q_in
+                    WHEN p.cuit_supplier <> 99999999999 THEN p.q_in
                     ELSE 0
                 END AS q_solicitada,
                 IFNULL(CASE
-                    WHEN cuit_supplier <> 99999999999 AND LENGTH(p.q_real) = 0 THEN 0
-                    WHEN cuit_supplier = 99999999999 AND p.q_real = 0 THEN p.q_in
+                    WHEN p.cuit_supplier <> 99999999999 AND LENGTH(p.q_real) = 0 THEN 0
+                    WHEN p.cuit_supplier = 99999999999 AND p.q_real = 0 THEN p.q_in
                     ELSE p.q_real
                 END, 0) AS q_recibida,
                 CASE
-                    WHEN cuit_supplier <> 99999999999 THEN p.q_real - p.q_in
+                    WHEN p.cuit_supplier <> 99999999999 THEN p.q_real - p.q_in
                     ELSE 0
                 END AS dife,
                 CASE
-                    WHEN cuit_supplier = 99999999999 THEN p.q_in
+                    WHEN p.cuit_supplier = 99999999999 THEN p.q_in
                     ELSE 0
                 END AS x_repo
             FROM bt_product b INNER JOIN lkp_categories c
@@ -120,11 +120,14 @@ query_outorder = """
             ON b.id_product = p.id_product
             LEFT JOIN lkp_warehouse w
             ON p.id_warehouse = w.id_warehouse
-            WHERE b.flag_ctrl = 1
-            AND p.fl_sok = 0
+            WHERE p.id_order > 0
+            AND b.flag_ctrl = 1
+            AND (p.fl_sok = 0
             OR LENGTH(p.fl_sok) = 0
             OR p.cuit_supplier = 99999999999
-            ORDER BY oc DESC;
+            OR dife <> 0
+            OR x_repo > 0)
+            ORDER BY p.id_order DESC;
             """
 
 
@@ -165,26 +168,29 @@ query_transfail = """
             ORDER BY producto;
             """
 
+
+# Listado de productos
 @bp.route("/prodlist")
 @login_required
 def prodlist():
-    """ Listado de productos """
     db = get_db()
     prods = db.execute(query_lp).fetchall()
     return render_template("reports/prodlist.html", prods = prods)
 
+
+# Listado de productos en Stock
 @bp.route("/prodstock")
 @login_required
 def prodstock():
-    """ Listado de productos en Stock """
     db = get_db()
     prstock = db.execute(query_ls).fetchall()
     return render_template("reports/prodstock.html", prstock = prstock)
 
+
+# Listado de productos a reponer
 @bp.route("/prodstockr")
 @login_required
 def prodstockr():
-    """ Listado de productos a reponer """
     db = get_db()
     prstock_rep = db.execute(query_lsr).fetchall()
     return render_template("reports/prodstockr.html", prstock_rep = prstock_rep)
@@ -201,6 +207,33 @@ def prodstrf():
         return render_template("reports/prods_transfer.html", prodsfail = prodsfail)
     flash('No se encuentran productos con estas características en este momento.')
     return redirect(url_for("auth.redirectlink"))
+
+
+# Listado de productos del punto de venta
+query_prods_sp = """SELECT
+                    p.id_product,
+                    s.tx_subcategory ||' - '|| b.tx_product ||' x '|| u.tx_unity AS desc_product,
+                    p.nu_price_usd
+                FROM bt_product_prices p INNER JOIN bt_product b
+                ON p.id_product = b.id_product
+                INNER JOIN lkp_categories c
+                ON b.id_category = c.id_category
+                INNER JOIN lkp_subcategories s
+                ON b.id_subcategory = s.id_subcategory
+                INNER JOIN lkp_units u
+                ON b.id_unity = u.id_unity
+                WHERE p.dt_to = '2100-12-31'
+                AND b.flag_ctrl = 1
+                ORDER BY 2;
+                """
+
+# Productos del punto de venta
+@bp.route("/prods_sp")
+@login_required
+def prods_sp():
+    db = get_db()
+    prpv = db.execute(query_prods_sp).fetchall()
+    return render_template("reports/prods_sp.html", prpv = prpv)
     
 
 @bp.route("/panel")
@@ -213,6 +246,11 @@ def panel():
 @login_required
 def panelb():
     return render_template("reports/panelb.html")
+
+@bp.route("/panelpv")
+@login_required
+def panelpv():
+    return render_template("reports/panelpv.html")
 
 
 @bp.route("/list")
@@ -320,18 +358,18 @@ def export_po():
         return response
 
 
-# Para eliminar
-@bp.route("/export_list_pd")
+# Exporto los productos del punto de venta
+@bp.route("/export_list_sp")
 @login_required
-def export_list_pd():
+def export_list_sp():
     io = BytesIO()
     with pd.ExcelWriter(io,  engine='openpyxl') as writer:
         db = get_db()
-        list = pd.read_sql_query(query_lp, db)
+        list = pd.read_sql_query(query_prods_sp, db)
         # result = pd.DataFrame(list)
-        pd.DataFrame(list).to_excel(writer, sheet_name='Productos', index=False)
+        pd.DataFrame(list).to_excel(writer, sheet_name='Precios Punto de Venta', index=False)
         writer.close()
         response = make_response(io.getvalue())
-        response.headers['Content-Disposition'] = 'attachment; filename=reponer.xlsx'
+        response.headers['Content-Disposition'] = 'attachment; filename=precios_punto_de_venta.xlsx'
         response.headers["Content-Type"] = "application/vnd.ms-excel"
         return response
