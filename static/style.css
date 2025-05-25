@@ -212,6 +212,21 @@ tfoot td {
   text-align: left;
 }
 
+.grid-iteml {
+  background-color: rgba(238, 233, 233, 0.8);
+  border: 0.5px solid rgba(0, 0, 0, 0.158);
+  padding: 10px;
+  text-align: left;
+}
+
+.grid-itemf {
+  grid-column: 1/-1;
+  background-color: rgba(238, 233, 233, 0.8);
+  border: 0.5px solid rgba(0, 0, 0, 0.158);
+  padding: 10px;
+  text-align: left;
+}
+
 .radio-btns{
   display: flex;
   gap: 0.5rem;

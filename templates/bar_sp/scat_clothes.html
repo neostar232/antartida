@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Venta de Ropa{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <select name="id_clothe">
+      <option value="" style="width: 200px;">Seleccionar prenda</option>
+      {% for clothes in prcl %}
+        <option name="id_clothe" value="{{clothes.id_product}}" style="width: 200px;">{{clothes.txt_product}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <br>
+
+    <label for="cabin">Cabina:</label>
+    <select id="cabin" name="cabin"
+            hx-post="{{ url_for('bar_sp.obtener_pasajeros_htmx') }}"
+            hx-trigger="change"
+            hx-target="#passenger-container"
+            hx-swap="innerHTML">
+        <option value="">Seleccionar cabina</option>
+        {% for cabin in cabs %}
+            <option value="{{ cabin.id_cabin }}">{{ cabin.tx_cabin_desc }}</option>
+        {% endfor %}
+    </select>
+    <br>
+
+    <label for="passenger">Pasajero:</label>
+    <div id="passenger-container">
+        <select id="passenger" name="passenger" disabled>
+            <option value="">-- Selecciona un Pasajero --</option>
+        </select>
+    </div>
+
+    <script>
+        const cabinSelect = document.getElementById('cabin');
+        const passengerSelect = document.getElementById('passenger');
+
+        cabinSelect.addEventListener('change', function() {
+            const cabinId = this.value;
+            passengerSelect.innerHTML = '<option value="">Seleccionar pasajero</option>';
+            passengerSelect.disabled = true;
+
+            if (cabinId) {
+                fetch('/bar_sp/obtener_pasajeros', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cabin_id: cabinId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                        if (data.length > 0) {
+                            data.forEach(passenger => {
+                                const option = document.createElement('option');
+                                option.value = passenger.id;
+                                option.textContent = passenger.nombre;
+                                passengerSelect.appendChild(option);
+                            });
+                            passengerSelect.disabled = false;
+                        } else {
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No hay pasajeros en esta cabina';
+                            passengerSelect.appendChild(option);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al obtener los pasajeros:', error);
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'Error al cargar los pasajeros';
+                        passengerSelect.appendChild(option);
+                    });
+            }
+        });
+    </script>
+
+    <br><br>
+
+    <input type="submit" value="Confirmar selección y asignar venta">
+  </form>
+
+  
+
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

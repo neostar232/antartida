@@ -1,0 +1,10 @@
+<select id="passenger" name="passenger">
+    <option value="">Seleccionar Pasajero</option>
+    {% for pasng in passengers %}
+        <option value="{{ pasng.id_passenger }}">{{ pasng.passenger_name }}</option>
+    {% else %}
+        <option value="" disabled>No hay pasajeros en esta cabina</option>
+    {% endfor %}
+</select>
+
+<input id="cantidad" name="qtty" value="" required style="width: 100px;">

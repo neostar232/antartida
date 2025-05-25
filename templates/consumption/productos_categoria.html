@@ -1,0 +1,34 @@
+<div>
+    <h3>Productos de la Categoría</h3>
+    <ul>
+        {% for producto in productos %}
+        <li data-producto-id="{{ producto.id }}">{{ producto.nombre }} - ${{ producto.precio }}</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productosLista = document.getElementById('lista-productos');
+        if (productosLista) {
+            const productos = productosLista.querySelectorAll('[data-producto-id]');
+            const productosDiv = document.getElementById('productos-seleccionados');
+            if (productosDiv && productosDiv.innerHTML === '') {
+                productos.forEach(productoElement => {
+                    const productoId = productoElement.dataset.productoId;
+                    const nombreProducto = productoElement.textContent.split(' - ')[0];
+                    const label = document.createElement('label');
+                    label.textContent = `${nombreProducto}: `;
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.name = `producto_${productoId}`;
+                    input.min = '0';
+                    input.value = '0';
+                    productosDiv.appendChild(label);
+                    productosDiv.appendChild(input);
+                    productosDiv.appendChild(document.createElement('br'));
+                });
+            }
+        }
+    });
+</script>

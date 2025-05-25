@@ -1,0 +1,7 @@
+<h3>Categorías de Productos</h3>
+<div>
+    {% for categoria in categorias %}
+    <button hx-get="{{ url_for('consumption.productos_categoria', passenger_id=pasajero_id, category_id=categoria.id) }}"
+    hx-target="#lista-productos">{{ categoria.categoria }}</button>
+    {% endfor %}
+</div>

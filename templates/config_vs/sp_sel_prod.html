@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Precios de productos y Tipos de Cambio{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <br>
+  <!--
+  <hr>
+  <u>T°C° Oficial:</u> <b>{{ official }} </b> // <u>T°C° Blue:</u> <b>{{ blue }}</b>
+  <hr>
+  -->
+  <form method="post">
+    <label for="tx_aprp">Seleccione producto para ingresar/actualizar precio</label>
+    <select name="id_aprp">
+      <option value="" style="width: 200px;">Seleccionar producto</option>
+      {% for prod in prods_sp %}
+        <option name="id_aprp" value="{{prod.id_product}}" style="width: 200px;">{{prod.desc_product}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <label for="nu_usd_pc">Precio en USD (separador decimal: punto)</label>
+    <input name="nu_usd_price" id="nu_usd_price" required style="width: 100px;"> 
+    <br>
+    <input type="submit" value="Actualizar Precio">
+  </form>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

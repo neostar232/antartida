@@ -1,0 +1,29 @@
+<h3>Pasajeros en la Cabina</h3>
+<form>
+    {% for pasajero in pasajeros %}
+    <div>
+        <input type="radio" id="pasajero_{{ pasajero.id_passenger }}" name="passenger_id" value="{{ pasajero.id_passenger }}">
+        <label for="pasajero_{{ pasajero.id_passenger }}">{{ pasajero.tx_name }} {{ pasajero.tx_surname }}</label>
+    </div>
+    {% else %}
+    <p>No hay pasajeros en esta cabina.</p>
+    {% endfor %}
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pasajeroRadios = document.querySelectorAll('input[type="radio"][name="passenger_id"]');
+        pasajeroRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                const pasajeroId = this.value;
+                htmx.ajax('GET', `{{ url_for('consumption.productos_pasajero', passenger_id='') }}/${pasajeroId}`, '#lista-categorias');
+                document.getElementById('passenger_id_submit').value = pasajeroId;
+            });
+        });
+        const cabinIdSelect = document.getElementById('cabin_id');
+        if (cabinIdSelect) {
+            const cabinId = cabinIdSelect.value;
+            document.getElementById('cabin_id_submit_consumo').value = cabinId;
+        }
+    });
+</script>

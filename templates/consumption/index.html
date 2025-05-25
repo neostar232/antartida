@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Venta de Ropa{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+
+    <section>
+        <form>
+            <label for="cabin_id">Seleccionar Cabina:</label>
+                <select name="cabin_id" id="cabin_id"
+                    hx-get="{{ url_for('consumption.pasajeros_cabina', cabin_id='') }}"
+                    hx-target="#lista-pasajeros"
+                    hx-trigger="change">
+                <option value="">Seleccione una cabina</option>
+                    {% for cabin in cabins %}
+                <option value="{{ cabin.id_cabin }}">{{ cabin.tx_cabin_desc }}</option>
+                    {% endfor %}
+                </select>
+        </form>
+    </section>
+
+    <section id="lista-pasajeros">
+    </section>
+
+        <section id="lista-categorias">
+            </section>
+
+        <section id="lista-productos">
+            </section>
+
+        <section>
+            <form hx-post="{{ url_for('consumption.registrar_consumo') }}">
+                <h3>Productos a Consumir</h3>
+                <div id="productos-seleccionados">
+                    </div>
+                <input type="hidden" name="passenger_id" id="passenger_id_submit">
+                <input type="hidden" name="cabin_id" id="cabin_id_submit_consumo">
+                <button type="submit">Registrar Consumo</button>
+            </form>
+        </section>
+    
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flashes">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}
