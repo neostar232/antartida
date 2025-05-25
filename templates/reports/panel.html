@@ -39,13 +39,16 @@
     </div>
     <div class="grid-item">
       <b>Reportes</b><br>
-      <a class="action" href="{{ url_for('reports.prodlist') }}" style="margin-right: 10px;"> Listado de Productos </a>
+      <a class="action" href="{{ url_for('reports.prodlist') }}" style="margin-right: 10px;"> Listado de Productos</a>
       <a class ="action" href="{{ url_for('reports.export_list') }}">Descargar</a>
       <br>
-      <a class="action" href="{{ url_for('reports.prodstock') }}" style="margin-right: 10px;"> Listado/Control de Stock </a>
+      <a class="action" href="{{ url_for('reports.prodstock') }}" style="margin-right: 10px;"> Listado/Control de Stock</a>
       <a class ="action" href="{{ url_for('reports.export_lc') }}">Descargar</a>
       <br>
-      <a class="action" href="{{ url_for('reports.prodstockr') }}" style="margin-right: 10px;"> Control de Stock/Punto de Reposición </a>
+      <a class="action" href="{{ url_for('reports.prods_sp') }}" style="margin-right: 10px;"> Listado Precios Punto de Venta</a>
+      <a class ="action" href="{{ url_for('reports.export_list_sp') }}">Descargar</a>
+      <br>
+      <a class="action" href="{{ url_for('reports.prodstockr') }}" style="margin-right: 10px;"> Control de Stock/Punto de Reposición</a>
       <a class ="action" href="{{ url_for('reports.export_pr') }}">Descargar</a>
       <br>
       <a class ="action" href="{{ url_for('reports.export_po') }}">Control de Preorden (Descargar)</a>
@@ -95,11 +98,14 @@
       <a class ="action" href="{{ url_for('config_vs.mod_wh') }}" style="margin-right: 10px;">Modificación</a>
       <br>
       <a class ="action" href="{{ url_for('config_vs.lcr') }}" style="margin-right: 10px;">Precios y Cotizaciones</a>
+      <a class ="action" href="{{ url_for('config_vs.sp_select') }}" style="margin-right: 10px;">Precios Pto. de Venta</a>
       <br>
       <a class ="action" href="{{ url_for('orders.go_generate_order') }}" style="margin-right: 10px;">Generar Orden de Compra</a>
       <a class ="action" href="{{ url_for('orders.accessing_rev') }}" style="margin-right: 10px;">Reversión Orden de Compra</a>
       </br>
-      <a class ="action" href="{{ url_for('orders.sel_close_order') }}" style="margin-right: 10px;">Visualizar Ordenes de Compra Generadas</a>
+      <a class ="action" href="{{ url_for('orders.view_closed_orders') }}" style="margin-right: 10px;">Visualizar Ordenes de Compra Generadas</a>
+    </br>
+    <a class ="action" href="{{ url_for('cron.cronx') }}" style="margin-right: 10px;">Cerrar sesión y generar bkp de la BD</a>
     </div>
   
   </div>
