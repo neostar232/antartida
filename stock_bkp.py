@@ -117,13 +117,13 @@ query_oc = """
 # Productos para transferir entre depositos
 query_transf = """
             SELECT
-                -- t.id_io,
+                t.id_io,
                 t.id_product,
                 s.tx_subcategory ||': '|| b.tx_product ||' - ' || u.tx_unity AS producto,
-                -- t.id_warehouse,
+                t.id_warehouse,
                 w.tx_warehouse,
-                -- t.dt_expiry,
-                SUM(t.q_batch_balance) AS q_batch_balance
+                t.dt_expiry,
+                t.q_batch_balance
             FROM bt_stock t INNER JOIN bt_product b
             ON t.id_product = b.id_product
             INNER JOIN lkp_categories c
@@ -135,11 +135,9 @@ query_transf = """
             INNER JOIN lkp_warehouse w
             ON (
                 t.id_warehouse = w.id_warehouse
-                AND w.id_warehouse NOT IN (12, 13, 14, 15, 16)
+                AND w.id_warehouse NOT IN (12, 13, 14, 15)
                 )
             WHERE t.q_batch_balance > 0
-            AND t.q_stock > 0
-            GROUP BY 1, 2, 3
             ORDER BY producto, t.dt_expiry
             """
 
@@ -161,31 +159,31 @@ query_add_transf = """
 
 # Actualizo el stock (partida por partida)
 query_us = """
+            CREATE TEMPORARY TABLE nsv AS
             SELECT
                 id_io,
                 id_product,
                 id_warehouse,
-                 q_batch_balance,
-                SUM(q_batch_balance)
-                    OVER(PARTITION BY id_product, id_warehouse
-                    ORDER BY id_io, dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
-                    ) AS stock_av
+                dt_expiry,
+                q_batch_balance,
+                -- SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock
+                SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY id_io, dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock
             FROM bt_stock
-            WHERE q_batch_balance > 0
+            WHERE q_batch_balance <> 0
             AND id_warehouse < 12
-            AND q_stock > 0
+            ORDER BY 2, 3, 1;
             """
 
 # Creo temporal para agregar las confirmaciones de la OC en el stock
 query_insocs = """
             CREATE TEMPORARY TABLE ttis (
-                dt_io TEXT,
-                id_product INTEGER,
-                id_warehouse INTEGER,
-                dt_expiry TEXT,
-                q_inn INTEGER,
-                q_inn_real INTEGER,
-                fl_ok INTEGER
+                dt_io           TEXT,
+                id_product      INTEGER,
+                id_warehouse    INTEGER,
+                dt_expiry       TEXT,
+                q_inn           INTEGER,
+                q_inn_real      INTEGER,
+                fl_ok            INTEGER
             );
             """
 
@@ -221,20 +219,6 @@ query_upd_out = """
 			) AS trf
             WHERE bt_stock.id_io = trf.id_io;
             """
-
-# Query para movimientos entre almacenes
-query_movebwh = """
-                SELECT
-                    id_io,
-                    id_product,
-                    id_warehouse,
-                    q_batch_balance
-                FROM bt_stock
-                WHERE q_batch_balance > 0
-                AND q_stock > 0
-                AND id_warehouse < 12
-                ORDER BY id_product, id_io
-                """
 
 
 # Ejecuto los listados de atributos para que se direccionen a las páginas dónde deben utilizarse
@@ -430,7 +414,7 @@ def add_massive_product():
                            )
                 # Actualizo las partidas y el stock general
                 db.execute("""DROP TABLE IF EXISTS nsv""")
-                db.execute(query_us + ' ORDER BY id_product, id_io;').fetchall()
+                db.execute(query_us).fetchall()
                 db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
                 db.commit()
             flash('Productos ingresados correctamente')
@@ -474,7 +458,7 @@ def enter_prods():
         orselec = request.form["seloc"]
         lphrase = ' GROUP BY 1, 2, 3, 4, 5 HAVING (IFNULL(o.fl_sok, 0) + IFNULL(o.q_real, 0)) < 1'
         db = get_db()
-        whexc = ' AND id_warehouse NOT IN (13, 14, 15, 16) ORDER BY tx_warehouse'
+        whexc = ' AND id_warehouse NOT IN (13, 14, 15) ORDER BY tx_warehouse'
         whs = db.execute(query_wh + whexc).fetchall()
         query_occ = query_oc + ' AND h.id_order = ' + orselec + lphrase
         ocp = db.execute(query_occ).fetchall()
@@ -515,7 +499,7 @@ def enter_wprods():
             db.execute(query_addocst).fetchall()
             # Actualizo las partidas y el stock general
             db.execute("""DROP TABLE IF EXISTS nsv""")
-            db.execute(query_us + ' ORDER BY id_product, id_io;').fetchall()
+            db.execute(query_us).fetchall()
             db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
             db.commit()
         flash('Los productos ingresados se actualizaron correctamente')
@@ -529,151 +513,86 @@ def enter_wprods():
 def available_ptt():
     db = get_db()
     aptt = db.execute(query_transf).fetchall()
-    whs = db.execute(query_wh + ' AND id_warehouse < 14 ORDER BY tx_warehouse;').fetchall()
+    whs = db.execute(query_wh + ' AND id_warehouse <> 15 ORDER BY tx_warehouse;').fetchall()
     return render_template("stock/move_stock.html", whs = whs, aptt = aptt)
 
 
-# Agrego los productos transferidos a la tabla de stock
+# Agrego los productos transferidos la tabla de stock
 @bp.route("/stock/enter_transf", methods=["GET", "POST"])
 @login_required
 def enter_transf():
     if request.method == "POST":
-        dtodayfull = str(datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None))
+        dtodayfull = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
         prod = request.form.getlist('idprodh')
+        move = request.form.getlist('idioh')
         qtr = request.form.getlist('q_trf')
-        # qav = request.form.getlist('avai')
+        qav = request.form.getlist('avai')
         wdest = request.form.getlist('id_wh')
         # Creo DF's con los datos recibidos desde el formulario de carga - Disponible y a Transferir
-        dict_transf = {'dt_io': dtodayfull, 'id_product': prod, 'id_warehouse': wdest, 'q_prodt': qtr}
+        dict_transf = {'id_io': move, 'dt_io': dtodayfull, 'id_product': prod, 'id_warehouse': wdest, 'q_proda': qav, 'q_prodt': qtr}
         transx = pd.DataFrame(dict_transf)
         # Creo dataframe con los valores obtenidos de las listas y tuplas
-        transf = pd.DataFrame(transx, columns=['id_product', 'id_warehouse', 'q_prodt'])
-        # 20250524transf[['id_io', 'id_product', 'id_warehouse', 'q_proda', 'q_prodt']] = transf[['id_io', 'id_product', 'id_warehouse', 'q_proda', 'q_prodt']].apply(pd.to_numeric)
-        transf[['id_product', 'id_warehouse', 'q_prodt']] = transf[['id_product', 'id_warehouse', 'q_prodt']].apply(pd.to_numeric)
-        # Obtengo los índices de las filas a eliminar, que son aquellas en la que la q a transferir es 0
+        transf = pd.DataFrame(transx, columns=['id_io', 'dt_io', 'id_product', 'id_warehouse', 'q_proda', 'q_prodt'])
+        transf[['id_io', 'id_product', 'id_warehouse', 'q_proda', 'q_prodt']] = transf[['id_io', 'id_product', 'id_warehouse', 'q_proda', 'q_prodt']].apply(pd.to_numeric)
+        # Obtengo los índices de las filas a eliminar, que son las que la q a transferir es 0
         indexNum = transf[transf['q_prodt'] == 0].index
         # Elimino los índices encontrados
         transf.drop(indexNum, inplace = True)
         # Regenero los indices
         transf.reset_index(drop=True, inplace=True)
-        # Agrego columna con valor 0 para el campo q_out, valor de la existencia en el lote y fecha
-        transf['q_out'] = 0
-        transf = transf.assign(q_batch_balance=transf['q_prodt'])
-        transf.insert(loc=0, column='dt_io', value=dtodayfull, allow_duplicates=False)
-        # Comienzo a operar sobre los datos obtenidos
+        # Creo tabla que va a manejar la info de los productos y cantidades
         db = get_db()
-        query_ins_bts = """INSERT INTO bt_stock (dt_io, id_product, id_warehouse, q_inn, q_out, q_batch_balance) VALUES (?,?,?,?,?,?)"""
-        transf_to_ins = [tuple(row) for row in transf.values]
-        db.executemany(query_ins_bts, transf_to_ins)
+        erased = """DELETE FROM temp_transfer;"""
+        db.execute(erased).fetchall()
+        transf.to_sql('temp_transfer', db, if_exists='append', index=False)
+
+        tupd = pd.read_sql_query("""select q_prodt, id_io from temp_transfer WHERE q_proda >= q_prodt;""",db)
+        tupd.columns = ['q_prodt', 'id_io']
+        stockx = tupd.values.tolist()
+        sql_update_query = """UPDATE bt_stock SET q_out = IFNULL(q_out, 0) + (?) WHERE id_io =(?)"""
+        db.executemany(sql_update_query, stockx)
+
+        # db.execute(query_upd_out).fetchall()
+        upd_qs0 = """UPDATE bt_stock SET q_stock = 0 WHERE q_batch_balance = 0;"""
+        db.execute(upd_qs0).fetchall()
+        db.execute(query_add_transf).fetchall()
+        upd_qbb = """UPDATE bt_stock SET q_batch_balance = (q_inn - IFNULL(q_out, 0));"""
+        db.execute(upd_qbb).fetchall()
+        db.execute("""DROP TABLE IF EXISTS nsv""")
+        db.execute(query_us).fetchall()
+        db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
+        # db.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'temp_stock';")
         db.commit()
-        # Genero lista con los productos que se van a transferir
-        df2 = transf.loc[:, ['id_product', 'q_prodt']]
-        df2 = df2.rename(columns={'q_prodt': 'q_substract'}) # No necesario, solo para dejarlo como JN
-        l2 = df2.values.tolist()
-        # Tomo los productos para luego incorporarlos como condicion a la consulta sobre el stock existente
-        only_prods = [sublist[0] for sublist in l2]
-        # Convirtiendo la lista resultante a una tupla
-        res_only_prods = tuple(only_prods)
-        # Traigo los productos existentes, para operar sobre ellos
-        df1 = pd.read_sql_query(query_us + ' AND id_product IN (' + (', '.join(map(str, res_only_prods))) + ')', db)
-        df1.columns = ['id_io', 'id_product', 'id_warehouse', 'q_batch_balance', 'stock_av']
-        l1 = df1.values.tolist()
-        # Defino los valores a comparar para actualizar el stock; comienzan los calculos
-        pl1 = 1  # Posición del ID de producto en l1
-        pl2 = 0  # Posición del ID de producto en l2
-        pl13 = 3 # Posición de la cantidad en stock en l1
-        pl21 = 1 # Posición de la cantidad a transferir en l2
+        # Codigo anterior - desde acá
+        # dispo = [val[0] if val else '0' for val in qav]
+        # dispo = list(map(int, dispo))
+        # updt = [val[0] if val else '0' for val in qtr]
+        # tt = list(map(int, updt))
+        # if dispo >= tt:
+        # if all(d >= t for d, t in zip(dispo, tt)):
+        # comprob = np.greater_equal(dispo,tt).all()
+        # if np.all(dispo >= tt):
+        # if comprob == True:
+        #    for qtrs, prods, wdests, moves in zip (qtr, prod, wdest, move):
+        #        db = get_db()
+        #        OK - upd_out = """UPDATE bt_stock SET q_out = IFNULL(q_out, 0) + (?) WHERE id_io =(?)"""
+        #        OK - db.execute(upd_out, (qtrs, moves),).fetchall()
+        #        OK - db.execute("""UPDATE bt_stock SET q_stock = 0 WHERE q_batch_balance = 0""")
+        #        ins_prd = """INSERT INTO temp_stock (id_io, dt_io, id_product, id_warehouse, q_inn) VALUES(?,?,?,?,?)"""
+        #        db.execute(ins_prd, (moves, dtoday, prods, wdests, qtrs),).fetchall()
+        #        -- db.execute("""DELETE FROM temp_stock WHERE length(q_inn) = 0;""")
+        #        db.execute(query_add_transf).fetchall()
+        #        db.execute("""UPDATE bt_stock SET q_batch_balance = (q_inn - IFNULL(q_out, 0))""")
+        #        db.execute("""DELETE FROM temp_stock;""")
+        #        db.execute("""DROP TABLE IF EXISTS nsv""")
+        #        db.execute(query_us).fetchall()
+        #        db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
+        #        db.execute("UPDATE sqlite_sequence SET seq = 0 WHERE name = 'temp_stock';")
+        #        db.commit()
+        # Hasta acá
 
-        # Se itera sobre CADA solicitud de transferencia en l2
-        for i, transfer_request in enumerate(l2):
-            if len(transfer_request) > pl2 and len(transfer_request) > pl21:
-                product_to_transfer = transfer_request[pl2]
-                requested_transfer_quantity = transfer_request[pl21]
-
-                # Realizar un seguimiento de cuanto se ha transferido realmente para el producto actual
-                current_transferred_quantity = 0
-
-                # Iterar sobre l1 para encontrar stock disponible del producto
-                for j in range(len(l1)):
-                    inventory_item = l1[j] # Obtenemos la sublista actual de l1
-
-                    # Validacion del formato del inventario
-                    if len(inventory_item) > pl1 and len(inventory_item) > pl13:
-                        product_in_stock = inventory_item[pl1]
-                        quantity_in_stock = inventory_item[pl13]
-                        batch_id = inventory_item[0] # El primer elemento es el nro de lote; se usaba para comprobar
-
-                        # Comprueba si los id_product coinciden y hay stock disponible en este lote
-                        if product_in_stock == product_to_transfer and quantity_in_stock > 0:
-                            remaining_to_transfer = requested_transfer_quantity - current_transferred_quantity
-
-                            # Caso 1: la cantidad en el lote es suficiente
-                            if quantity_in_stock >= remaining_to_transfer:
-                                quantity_to_take_from_batch = remaining_to_transfer
-                                l1[j][pl13] -= quantity_to_take_from_batch # Deduce del stock
-                                current_transferred_quantity += quantity_to_take_from_batch
-                                # Agrega la cantidad transferida a la sublist l1
-                                l1[j].append(quantity_to_take_from_batch)
-
-                                # print(f" - Lote {batch_id} (Prod: {product_in_stock}, Stock ant.: {quantity_in_stock}). Transferido {quantity_to_take_from_batch}. Nuevo stock: {l1[j][pl13]}. Agregado: {quantity_to_take_from_batch}.")
-
-                                # Si el total a transferir es suficiente, detiene el proceso para el producto tratado
-                                if current_transferred_quantity == requested_transfer_quantity:
-                                    # print(f"  -> Transferencia completa para id_product ID {product_to_transfer}.")
-                                    break # Sale del loop (sobre l1)
-
-                            # Caso 2: La cantidad en el lote no es suficiente para la transferencia
-                            else:
-                                quantity_to_take_from_batch = quantity_in_stock # Toma todo el stock del lote
-                                l1[j][pl13] = 0 # El lote esta agotado
-                                current_transferred_quantity += quantity_to_take_from_batch
-                                # Agrega la cantidad transferida a la sublist l1
-                                l1[j].append(quantity_to_take_from_batch)
-
-                                # print(f" - Lote {batch_id} (Prod: {product_in_stock}, Stock ant: {quantity_in_stock}). Transferido {quantity_to_take_from_batch}. Nuevo stock: 0. (Batch depleted). Agregado: {quantity_to_take_from_batch}.")
-
-                                # Continue to the next batch in l1 to find more stock for the same product
-                    else:
-                        pass # print(f" - Cuidado: El producto {inventory_item} en l1 No tieen suficiente cantidad. Salteando este item.")
-
-                # Luego de intentar satisfacer el total a transferir con la totalidad de lotes disponibles en l1
-                if current_transferred_quantity < requested_transfer_quantity:
-                    pass # print(f" !!! Atencion: No se completo la transferencia de {product_to_transfer}. Faltan {requested_transfer_quantity - current_transferred_quantity} unidades.")
-            else:
-                pass # print(f"--- Cuidado: La cantidad a transferir {transfer_request} en l2 no tiene la cantidad necesaria de elementos. Se saltea la transferencia. ---")
-
-        # Genero un DF para poder trabajarlo en la BD
-        dfx = pd.DataFrame(l1, columns=['id_io', 'id_product', 'id_warehouse', 'q_batch_balance', 'stock_acum', 'transfer']).fillna(0)
-
-        # Actualizo los datos de las transferencias de salida
-        qry_udp_bts = """
-                        UPDATE bt_stock
-                        SET q_batch_balance = ?, q_out = q_out + ?
-                        WHERE id_io = ? AND id_product = ?;
-                        """
-        data_update = []
-        for index, row in dfx.iterrows():
-            q_batch_balance_val = int(row['q_batch_balance'])
-            transfer_val = int(row['transfer'])
-            id_io_val = int(row['id_io'])
-            id_product_val = int(row['id_product'])
-            
-            data_update.append((
-                q_batch_balance_val,
-                transfer_val,
-                id_io_val,
-                id_product_val
-            ))
-        try:
-            db.executemany(qry_udp_bts, data_update)
-            db.commit()
-        except Exception as e:
-            db.rollback()
-
-        # Controlo que los valores a transferir no sean nulos
-        comprob = (dfx['transfer'] != 0).sum()
-        # comprob = db.execute('SELECT COUNT(*) AS q FROM temp_transfer WHERE q_prodt > q_proda;').fetchone()[0]
-        if comprob > 1:
+        comprob = db.execute('SELECT COUNT(*) AS q FROM temp_transfer WHERE q_prodt > q_proda;').fetchone()[0]
+        if comprob < 1:
             flash('Los productos fueron transferidos correctamente.')
             return redirect(url_for("auth.redirectlink"))
         flash('Los productos fueron transferidos correctamente, pero hubo intento de transferir por encima de la existencia. Ver listado.')

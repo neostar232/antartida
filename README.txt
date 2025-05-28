@@ -11,6 +11,17 @@ pv2@@ushuaia.com // pswdepv2 -- Usuario del Comedor
 pv3@@ushuaia.com // pswdepv3 -- Usuario del Room Service
 
 ############################# Voy dejando acá las ultimas actualizaciones con fecha #############################
+28/05
+* PENDING Se modifica move_stock.html para que haga la comprobación sobre las cantidades de las transferencias
+* PENDING Actualización del stock remanente acumulado
+
+23/05
+* Se modifica el nombre del Almacén "Bar": ahora es "Bar / Pto. de Venta"
+* Se crea un nuevo almacén "Ventas", que hará el collect de las descargas del Almacén del primer punto
+* No se considera la mas fecha de vencimiento en las transferencias entre depositos, por la falta de este dato
+* El dato antes mencionado, junto al lote, tampoco se envían al formulario
+* En el form, se ve el acumulado de existencias, luego el programa aplica el método FIFO
+
 18/05
 * Se reemplaza temporalmente, la bd normalmente utilizada por la version "_desa"
 * Hay elementos para eliminar, los archuvos que componen la app van a ir variando constantemente

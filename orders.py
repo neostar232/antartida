@@ -1,7 +1,8 @@
 from flask import Blueprint, flash, g, redirect, render_template, request, session, url_for, make_response
 from .auth import login_required
 from .db import get_db
-import datetime as dt
+from datetime import datetime, date
+import pytz as tz
 from io import BytesIO
 from flask_weasyprint import HTML, render_pdf
 import pandas as pd
@@ -410,7 +411,7 @@ def go_generate_order():
 @login_required
 def generate_order():
     if request.method == "POST":
-        dtoday = dt.date.today()
+        dtoday = date.today()
         oper = session.get("user_id")
         db = get_db()
         db.execute("INSERT INTO bt_order_header (dt_order, id_user) VALUES (?,?)",
