@@ -1,7 +1,7 @@
 Voy a ir dejando acá, datos relevantes y otros no tanto
 
 * Orden para arrancar la aplicación desde la consola:
-flask --app usuahia run --debug
+flask --app ushuaia run --debug
 
 * Usuarios y passwords
 adm@ushuaia.com // pswdeadm
@@ -11,6 +11,9 @@ pv2@@ushuaia.com // pswdepv2 -- Usuario del Comedor
 pv3@@ushuaia.com // pswdepv3 -- Usuario del Room Service
 
 ############################# Voy dejando acá las ultimas actualizaciones con fecha #############################
+31/05
+# Los pendings del 28/05 ya están listos para testearse; sólovalida en el usuario, no en el servidor
+
 28/05
 * PENDING Se modifica move_stock.html para que haga la comprobación sobre las cantidades de las transferencias
 * PENDING Actualización del stock remanente acumulado

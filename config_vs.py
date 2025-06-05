@@ -1,7 +1,8 @@
 import functools
 from flask import Blueprint, flash, g, redirect, render_template, request, url_for, make_response, session
 import csv
-import datetime as dt
+from datetime import datetime, date
+import pytz as tz
 from io import StringIO, BytesIO
 # from werkzeug.exceptions import abort
 import pandas as pd
@@ -314,11 +315,11 @@ def sp_select():
     return render_template("config_vs/sp_sel_prod.html", prods_sp = prods_sp)
 
 # Ejecuto la actualización de los precios de Venta
-@bp.route("/sp_sel_prod", methods=["GET", "POST"])
+@bp.route("/sp_upd_price", methods=["GET", "POST"])
 @login_required
 def add_price_sp():
     if request.method == "POST":
-        dtoday = dt.date.today()
+        dtoday = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
         idpr = request.form["id_aprp"]
         prusd = request.form["nu_usd_price"]
         oper = session.get("user_id")

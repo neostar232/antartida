@@ -165,14 +165,14 @@ query_us = """
                 id_io,
                 id_product,
                 id_warehouse,
-                 q_batch_balance,
+                q_batch_balance,
                 SUM(q_batch_balance)
                     OVER(PARTITION BY id_product, id_warehouse
                     ORDER BY id_io, dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
                     ) AS stock_av
             FROM bt_stock
             WHERE q_batch_balance > 0
-            AND id_warehouse < 12
+            AND id_warehouse <= 12
             AND q_stock > 0
             """
 
@@ -516,6 +516,7 @@ def enter_wprods():
             # Actualizo las partidas y el stock general
             db.execute("""DROP TABLE IF EXISTS nsv""")
             db.execute(query_us + ' ORDER BY id_product, id_io;').fetchall()
+            db.execute("""UPDATE bt_stock SET q_out = 0 WHERE q_out IS NULL""")
             db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
             db.commit()
         flash('Los productos ingresados se actualizaron correctamente')
@@ -648,7 +649,7 @@ def enter_transf():
         # Actualizo los datos de las transferencias de salida
         qry_udp_bts = """
                         UPDATE bt_stock
-                        SET q_batch_balance = ?, q_out = q_out + ?
+                        SET q_batch_balance = ?, q_out = COALESCE(q_out, 0) + ?
                         WHERE id_io = ? AND id_product = ?;
                         """
         data_update = []
@@ -670,10 +671,30 @@ def enter_transf():
         except Exception as e:
             db.rollback()
 
+        # Concateno para realizar el update del campo q_stock (acumulado) en bt_stock
+        qry_str1 = """
+                    UPDATE bt_stock SET q_stock = a.stock_av
+                    FROM
+                    (
+                    SELECT
+                        id_io,
+                        id_product,
+                        id_warehouse,
+                        q_batch_balance,
+                        SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY id_io, dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock_av
+                    FROM bt_stock
+                    WHERE q_batch_balance >= 0
+                    AND id_warehouse < 12
+                    AND q_stock >= 0
+                    """
+        qry_str2 = " ) a  WHERE bt_stock.id_io = a.id_io"
+        squpd = (qry_str1 + ' AND id_product IN (' + (', '.join(map(str, res_only_prods))) + ') ' + qry_str2)
+        db.execute(squpd)
+        db.commit()
         # Controlo que los valores a transferir no sean nulos
         comprob = (dfx['transfer'] != 0).sum()
         # comprob = db.execute('SELECT COUNT(*) AS q FROM temp_transfer WHERE q_prodt > q_proda;').fetchone()[0]
-        if comprob > 1:
+        if comprob >= 1:
             flash('Los productos fueron transferidos correctamente.')
             return redirect(url_for("auth.redirectlink"))
         flash('Los productos fueron transferidos correctamente, pero hubo intento de transferir por encima de la existencia. Ver listado.')
