@@ -11,7 +11,7 @@
   <u>T°C° Oficial:</u> <b>{{ official }} </b> // <u>T°C° Blue:</u> <b>{{ blue }}</b>
   <hr>
   -->
-  <form method="post">
+  <form method="post" action="{{ url_for('config_vs.add_price_sp') }}" >
     <label for="tx_aprp">Seleccione producto para ingresar/actualizar precio</label>
     <select name="id_aprp">
       <option value="" style="width: 200px;">Seleccionar producto</option>

@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
 {% block head %}
-  
 {% endblock %}
 
 {% block header %}
@@ -17,10 +16,8 @@
     <table>
       <thead>
         <tr align="center">
-          <!-- <th scope="col">Código</th> -->
           <th scope="col">Tipo / Producto / Unidad de Medida</th>
           <th scope="col">Depósito Origen</th>
-          <th scope="col">Fecha Venc.</th>
           <th scope="col">Cant. Disponible</th>
           <th scope="col">Cant. a Transferir</th>
           <th scope="col">Depósito Destino</th>
@@ -29,30 +26,66 @@
       <tbody>
         {% for prod in aptt %}
         <tr>
-            <input type=hidden name="idprodh" value="{{prod.id_product}}">
-            <input type=hidden name="idioh" value="{{prod.id_io}}">
-          <td name="tx_prodv" style="width: 250px;">{{prod.producto}}</td>
-          <td name="wh_source" style="width: 80px;">{{prod.tx_warehouse}}</td>
-          <td name="dt_exp" style="width: 80px;">{{prod.dt_expiry}}</td>  
-          <td name="q_avai" style="width: 80px;">{{prod.q_batch_balance}}</td>
-          <td>
-            <input type=hidden name="avai" value="{{prod.q_batch_balance}}">
-            <input name="q_trf" value="0" type="number" style="width: 35px;"></td>
-          <td>
+            <input type="hidden" name="idprodh" value="{{prod.id_product}}">
+            <td name="tx_prodv" style="width: 250px;">{{prod.producto}}</td>
+            <td name="wh_source" style="width: 80px;">{{prod.tx_warehouse}}</td>
+            <td name="q_avai" style="width: 80px;">{{prod.q_batch_balance}}</td>
+            <td>
+              <input type="hidden" name="avai" value="{{prod.q_batch_balance}}">
+              <input name="q_trf" value="0" type="number" style="width: 35px;" onblur="validateTrnf(this)" required>
+              <div class="mensaje-error" style="color: red;"></div> {# Agregado estilo inicial para visibilidad #}
+            </td>
+            <td>
             <select name="id_wh">
               <option value="" style="width: 100px;">Almacén Destino</option>
               {% for wh in whs %}
-                <option name="id_wh" value="{{wh.id_warehouse}}">{{wh.tx_warehouse}}</option>
+                <option value="{{wh.id_warehouse}}">{{wh.tx_warehouse}}</option>
               {% endfor %}
             </select>
           </td>
-          {% endfor %}
-        </tr>        
+        </tr>
+        {% endfor %}
       </tbody>
     </table>
     <br>
     <input type="submit" value="Transferir Productos" onclick="greaterNum()">
   </form>
+
+  <script>
+  function validateTrnf(inputElement) {
+    // Obtengo el <td> padre del input de cantidad a transferir
+    const parentTd = inputElement.parentElement;
+
+    // Obtenemos el input hidden 'avai' que está en el mismo <td>
+    const availableInput = parentTd.querySelector('input[name="avai"]');
+    const available = availableInput ? parseFloat(availableInput.value) : 0; // Si no lo encuentra, asume 0
+
+    const transf = parseFloat(inputElement.value);
+    const mensajeError = parentTd.querySelector('.mensaje-error');
+
+    // Limpiar mensaje de error previo
+    mensajeError.textContent = '';
+
+    if (isNaN(transf) || transf < 0) {
+        mensajeError.textContent = 'Ingrese una cantidad válida.';
+        return false;
+    }
+
+    if (transf > available) {
+      mensajeError.textContent = 'El valor a transferir es mayor al stock actual';
+      return false;
+    } else {
+      // Si la validación pasa, no hay mensaje de error.
+      return true;
+    }
+  }
+
+  // greaterNum() solo se ejecuta con el onblur.
+  function greaterNum() {
+
+  }
+  </script>
+
   <br>
   <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
 {% endblock %}
