@@ -63,7 +63,7 @@ def create_app(test_config=None):
 
 
     # Aplicando los Blueprints a la app
-    from . import auth, reports, suppliers, stock, config_vs, orders, cron, bar_sp, consumption
+    from . import auth, reports, suppliers, stock, config_vs, orders, cron, bar_sp, consumption, passengers
     
     app.register_blueprint(auth.bp)
     app.register_blueprint(reports.bp)
@@ -74,5 +74,6 @@ def create_app(test_config=None):
     app.register_blueprint(cron.bp)
     app.register_blueprint(bar_sp.bp)
     app.register_blueprint(consumption.bp)
+    app.register_blueprint(passengers.bp)
     app.add_url_rule("/", endpoint="index")
     return app

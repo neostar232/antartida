@@ -11,8 +11,13 @@ pv2@@ushuaia.com // pswdepv2 -- Usuario del Comedor
 pv3@@ushuaia.com // pswdepv3 -- Usuario del Room Service
 
 ############################# Voy dejando acá las ultimas actualizaciones con fecha #############################
+07/06
+# Se amplía el ancho del contenedor del sitio, para no scrollear al acceder a las nuevas secciones
+# Se modifica tabla de pasajeros (falta la generación automática y cifrada de psw)
+# PENDING: pasar a pestañas el acceso del Administrador a los menúes
+
 31/05
-# Los pendings del 28/05 ya están listos para testearse; sólovalida en el usuario, no en el servidor
+# Los pendings del 28/05 ya están listos para testearse; sólo valida en el usuario, no en el servidor
 
 28/05
 * PENDING Se modifica move_stock.html para que haga la comprobación sobre las cantidades de las transferencias

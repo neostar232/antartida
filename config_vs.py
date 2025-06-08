@@ -70,6 +70,11 @@ query_prods_sp = """SELECT
                 ORDER BY 2;
                 """
 
+
+# Listado de rutas (recorridos) existentes
+get_cmpgn = """SELECT id_route, tx_route FROM lkp_routes ORDER BY 1;"""
+
+
 # Enlace a la Guía de Uso (sin utilización)
 @bp.route("/tda")
 @login_required
@@ -129,7 +134,7 @@ def add_category():
     return render_template("config_vs/add_category.html")
 
 
-# Alta de subategoría
+# Alta de subcategoría
 @bp.route("/add_subcategory", methods=["GET", "POST"])
 @login_required
 def add_subcategory():
@@ -274,7 +279,7 @@ def lcr():
     return render_template("config_vs/add_price.html", prods = prods)
 
 
-# Entrada masiva de productos (recepcion de remito del proveedor)
+# Ingreso de costos de productos
 @bp.route("/add_price", methods=["GET", "POST"])
 @login_required
 def add_price():
@@ -307,7 +312,7 @@ def add_price():
 
 
 # Busco los productos del punto de venta
-@bp.route("/sp_sel_prod")
+@bp.route("/config/sp_sel_prod")
 @login_required
 def sp_select():
     db = get_db()
@@ -342,3 +347,37 @@ def add_price_sp():
             flash('El precio fue actualizado correctamente')
             return redirect(url_for("auth.redirectlink"))      
     return render_template("config_vs/sp_sel_prod.html")
+
+
+
+# Recorridos existentes
+@bp.route("/config/list_cmpgn", methods=["GET"])
+@login_required
+def list_cmpgn():
+    db = get_db()
+    det_cmp = db.execute(get_cmpgn).fetchall()
+    return render_template("config_vs/add_cmpg.html", det_cmp = det_cmp)
+
+
+# Alta de recorridos
+@bp.route("/config/in_cmpgn", methods=["GET", "POST"])
+@login_required
+def in_cmpgn():
+    if request.method == "POST":
+        dtoday = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
+        trip = request.form["identtrip"]
+        dtf = request.form["datef"]
+        dtt = request.form["datet"]
+        route = request.form["sel_route"]
+        oper = session.get("user_id")
+        if dtt < dtf:
+            flash('La fecha de regreso es menor a la de partida. Por favor corregir.')
+            return redirect(url_for("auth.redirectlink"))
+        else:
+            db = get_db()
+            db.execute("INSERT INTO lkp_campaign (id_trip, dt_from, dt_to, id_route, id_user, dt_insert) VALUES (?,?,?,?,?,?)",
+                    (trip, dtf, dtt, route, oper, dtoday),
+                    )
+            db.commit()
+            flash('Se agregó el recorrido correctamente.')
+            return redirect(url_for("auth.redirectlink"))
