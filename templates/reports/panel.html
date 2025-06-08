@@ -104,9 +104,20 @@
       <a class ="action" href="{{ url_for('orders.accessing_rev') }}" style="margin-right: 10px;">Reversión Orden de Compra</a>
       </br>
       <a class ="action" href="{{ url_for('orders.view_closed_orders') }}" style="margin-right: 10px;">Visualizar Ordenes de Compra Generadas</a>
-    </br>
-    <a class ="action" href="{{ url_for('cron.cronx') }}" style="margin-right: 10px;">Cerrar sesión y generar bkp de la BD</a>
+      </br>
+      <a class ="action" href="{{ url_for('cron.cronx') }}" style="margin-right: 10px;">Cerrar sesión y generar bkp de la BD</a>
+      </br>
+      <a class ="action" href="{{ url_for('config_vs.list_cmpgn') }}" style="margin-right: 10px;">Agregar recorridos del año</a>
     </div>
+    <div class="grid-item">
+      <b>Gestión de Pasajeros</b><br>
+      <a class ="action" href="{{ url_for('passengers.add_psgr') }}" style="margin-right: 10px;">Alta de pasajeros</a>
+      </br>
+    </div>
+    <div class="grid-item">
+      <b>Gestión de Ventas</b><br>
+    </div>
+
   
   </div>
 

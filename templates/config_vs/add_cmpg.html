@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Alta de Recorridos - Inicio de Temporada{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <br>
+  <form method="post" action="{{ url_for('config_vs.in_cmpgn') }}">
+    <div class="input-container">
+      <label for="nu_pe">Identificador de viaje:</label>
+        <input name="identtrip" id="identtrip" required style="width: 120px;">
+    <br>
+    
+      <label for="datef">Fecha desde:</label>
+        <input type="date" name="datef" value="" min="2025-06-01" max="2030-12-31" style="width: 120px;"/>
+      <label for="datet">Fecha hasta:</label>
+        <input type="date" name="datet" value="" min="2025-06-01" max="2030-12-31" style="width: 120px;"/>
+    </div>   
+    <label for="lbl_route">Seleccione ruta</label>
+    <select name="sel_route" class="desplegable">
+      <option value="">Seleccionar ruta</option>
+      {% for cmp in det_cmp %}
+        <option name="sel_route" value="{{cmp.id_route}}">{{cmp.tx_route}}</option>
+      {% endfor %}    
+    </select>
+     
+    <br>
+    
+    <input type="submit" value="Agregar recorrido">
+  </form>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}
