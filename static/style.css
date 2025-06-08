@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  max-width: 960px;
+  max-width: 1280px; /* antes 960 */
   margin: 0 auto;
   background: white;
   height: 100%;
@@ -200,7 +200,7 @@ tfoot td {
   display: grid;
   column-gap: 5px;
   row-gap: 5px;
-  grid-template-columns: 50% 50%;
+  grid-template-columns: 33% 33% 33%; /* antes 50% 50% */
   background-color: #ffffff;
   padding: 10px;
 }
@@ -278,3 +278,19 @@ tfoot td {
   border: 1px solid #ddd; /* Add a grey border */
   margin-bottom: 12px; /* Add some space below the input */
 }
+
+
+.desplegable {
+  width: 200px;
+}
+
+.input-container {
+  display: inline-block;
+  margin-right: 30px; /* Espacio entre los inputs */
+}
+
+.input-container input {
+  display: inline-block;
+  width: 120px; /* Ancho de los inputs */
+}
+
