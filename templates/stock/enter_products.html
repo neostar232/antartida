@@ -31,23 +31,18 @@
         <tr>
             <input type="hidden" name="id_prodh" value="{{prod.id_product}}">
             <input type=hidden name="id_move" value="{{prod.id_movement}}">
-          <td name="tx_prodv" style="width: 150px;">{{prod.producto}}</td>
+          <td style="width: 150px;">{{prod.producto}}</td>
           <td><input type="date" name="exdt" value="" min="2024-08-01" max="2030-12-31"/></td>
             <input type=hidden name="q_qs" value="{{prod.q_in}}">
-          <td name="q_req" style="width: 80px;">{{prod.q_in}}</td>
+          <td style="width: 80px;">{{prod.q_in}}</td>
           <td>
-          <!-- <input type="hidden" name="okq" value="1" />
-          <input type="checkbox" name="okq">   
-          <input type="checkbox" name="okq" onchange="activateSubmit(this)">
-          -->
-            <select name="okq">
+            <select name="okq" id="okq_{{ loop.index0 }}" onchange="toggleCantReal({{ loop.index0 }})">
               <option value="" style="width: 50px;">Seleccionar</option>
-              <option name="okq" value="1">Si</option>
-              <option name="okq" value="0">No</option>
+              <option value="1">Si</option>
+              <option value="0">No</option>
             </select>
-
           </td>
-          <td><input name="q_rec" value="" type="number" style="width: 35px;"></td>
+          <td><input name="q_rec" id="q_rec_{{ loop.index0 }}" value="" type="number" style="width: 35px;" disabled></td>
           <td>
             <select name="id_wh">
               <option value="" style="width: 150px;">Almacén Destino</option>
@@ -60,9 +55,66 @@
         </tr>        
       </tbody>
     </table>
+    <div id="error_general" style="color: red; font-size: 14px; display: none; margin-top: 10px;">
+      <!-- El mensaje se actualiza desde JS -->
+    </div>
     <br>
-    <input type="submit" value="Ingresar Productos">
+    <input type="submit" id="submitBtn" value="Ingresar Productos">
   </form>
   <br>
   <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+  <script>
+    function toggleCantReal(idx) {
+      const okq = document.getElementById('okq_' + idx);
+      const qrec = document.getElementById('q_rec_' + idx);
+    
+      if (okq.value === '0') {
+        qrec.disabled = false;
+        qrec.addEventListener('input', validarTodasLasCantidades);
+      } else {
+        qrec.disabled = true;
+        qrec.value = '';
+        validarTodasLasCantidades();
+      }
+    
+      console.log("Valor actual de Cant. Real:", qrec.value);
+    }
+    
+    function validarTodasLasCantidades() {
+      const qsols = document.getElementsByName('q_qs');
+      const qrecs = document.querySelectorAll('input[name="q_rec"]');
+      const okqs = document.querySelectorAll('select[name="okq"]');
+      const errorGeneral = document.getElementById('error_general');
+      const submitBtn = document.getElementById('submitBtn');
+    
+      let errores = [];
+    
+      for (let i = 0; i < qsols.length; i++) {
+        const solicitado = qsols[i].value;
+        const recibido = qrecs[i].value;
+        const estaHabilitado = !qrecs[i].disabled;
+    
+        if (estaHabilitado && recibido === solicitado) {
+          const row = qrecs[i].closest('tr');
+          const productName = row.cells[0].innerText;
+          errores.push(`• La cantidad real debe ser distinta a la solicitada en el producto: ${productName}`);
+        }
+      }
+    
+      if (errores.length > 0) {
+        errorGeneral.innerHTML = errores.join('<br>');
+        errorGeneral.style.display = 'block';
+        submitBtn.disabled = true;
+      } else {
+        errorGeneral.style.display = 'none';
+        errorGeneral.innerText = '';
+        submitBtn.disabled = false;
+      }
+    }
+    </script>
+    
+    
+    
+    
+  
 {% endblock %}
