@@ -1,0 +1,28 @@
+{# templates/consumption/_cons_passenger.html #}
+{% if get_cons %}
+    <h3>Detalle de Consumos</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Fecha</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in get_cons %}
+            <tr>
+                <td>{{ item.producto }}</td>
+                <td>{{ item.fc }}</td>
+                <td>{{ item.nu_quantity }}</td>
+                <td>{{ "%.2f"|format(item.pc_unity) }}</td>
+                <td>{{ "%.2f"|format(item.pc_total) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>Este pasajero no tiene consumos registrados.</p>
+{% endif %}

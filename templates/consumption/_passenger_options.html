@@ -1,4 +1,9 @@
-<select id="passenger" name="passenger">
+<select id="passenger" name="passenger"
+        {% if not passengers %}disabled{% endif %}
+        hx-get="{{ url_for('consumption.get_products_htmx') }}"
+        hx-trigger="change"
+        hx-target="#product-container"
+        hx-swap="innerHTML">
     <option value="">Seleccionar Pasajero</option>
     {% for pasng in passengers %}
         <option value="{{ pasng.id_passenger }}">{{ pasng.passenger_name }}</option>
@@ -7,4 +12,6 @@
     {% endfor %}
 </select>
 
-<input id="cantidad" name="qtty" value="" required style="width: 100px;">
+{% if show_quantity %}
+    <input id="cantidad" name="qtty" value="" required style="width: 100px;">
+{% endif %}

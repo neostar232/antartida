@@ -1,41 +1,46 @@
-{% extends 'base.html' %}
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
 
 {% block header %}
   <h1>{% block title %}Alta de Productos{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
-  <form method="post">
+  <form method="post" action="{{ url_for('stock.add_product') }}">
     <label for="tx_prod">Nombre del Producto</label>
     <input name="tx_prod" id="tx_prod" required style="width: 200px;">
-
     <label for="tx_cate">Seleccione categoría del producto</label>
     <select name="id_cate">
       <option value="" style="width: 200px;">Seleccionar categoría</option>
       {% for cate in cates %}
         <option name="id_cate" value="{{cate.id_category}}" style="width: 200px;">{{cate.tx_category}}</option>
+        {% if not loop.last %}
+        {% endif %}
       {% endfor %}
     </select>
-
     <label for="tx_scate">Seleccione la subcategoría del producto</label>
     <select name="id_scate">
       <option value="" style="width: 200px;">Seleccionar subcategoría</option>
       {% for subcate in subcates %}
         <option name="id_scate" value="{{subcate.id_subcategory}}" style="width: 200px;">{{subcate.tx_subcategory}}</option>
+        {% if not loop.last %}
+        {% endif %}
       {% endfor %}
     </select>
-
     <label for="tx_scate">Seleccione la unidad de medida del producto</label>
     <select name="id_unit">
       <option value="" style="width: 200px;">Seleccionar UM</option>
       {% for unit in units %}
         <option name="id_unit" value="{{unit.id_unity}}" style="width: 200px;">{{unit.tx_unity}}</option>
+        {% if not loop.last %}
+        {% endif %}
       {% endfor %}
     </select>
-
     <label for="tx_prep">Punto de repedido</label>
     <input name="tx_prep" id="tx_prep" required style="width: 200px;" type="number">
-
     <br>
     <input type="submit" value="Alta de Producto">
   </form>

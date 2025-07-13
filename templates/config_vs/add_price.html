@@ -1,4 +1,8 @@
-{% extends 'base.html' %}
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
 
 {% block header %}
   <h1>{% block title %}Precios de productos y Tipos de Cambio{% endblock %}</h1>

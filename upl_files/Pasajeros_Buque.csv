@@ -1,0 +1,101 @@
+﻿Nombre;Apellido;Tipo de Identificación;Nro. de Identificación;Fecha de Nacimiento;Email;Teléfono;Teléfono emergencias;Calle;Número;Cod. Postal;Ciudad;Provincia/Estado;País;Id. de Viaje;Cabina Asignada;IDV2;IDC2
+Roberto;Gomez;Pasaporte;PSP459998786534;20/11/2001;roberto.gomez@gmail.com;10800567899;10800567900;Mercy;900;Z9001BNM;San Francisco;California;USA;A131025;411;1;26
+Hiroshi;Tanaka;Pasaporte;TY8765432;12/03/1980;hiroshi.t@email.jp;+81-3-1234-5678;+81-3-9999-0000;Shibuya;01-ene;150-0002;Tokio;Tokio;Japón;A131025;409;1;24
+Isabella;Rossi;Cédula;IT987654321;01/07/1992;isabella.r@email.it;+39-06-1234-5678;+39-06-9999-0000;Via Roma;10;187;Roma;Lazio;Italia;A131025;418;1;31
+David;Chen;DNI;G45678901;25/11/1985;david.c@email.cn;+86-10-1234-5678;+86-10-9999-0000;Dongcheng;25;100010;Pekín;Pekín;China;A131025;639;1;45
+Priya;Sharma;Aadhaar;1234-5678-9012;15/01/1978;priya.s@email.in;+91-22-1234-5678;+91-22-9999-0000;Mahatma Gandhi Marg;15;400001;Mumbai;Maharashtra;India;A131025;637;1;43
+Liam;O'Connell;Driver's License;OC9876543;08/09/1995;liam.o@email.ie;+353-1-1234-5678;+353-1-9999-0000;Grafton Street;7;D02 N280;Dublín;Leinster;Irlanda;A131025;412;1;27
+Sofia;Silva;RG;12.345.678-9;30/04/1972;sofia.s@email.br;+55-11-1234-5678;+55-11-9999-0000;Av. Paulista;1000;01311-000;São Paulo;São Paulo;Brasil;A131025;636;1;42
+Alex;Petrov;Pasaporte;7777 123456;19/02/1988;alex.p@email.ru;+7-495-123-4567;+7-495-999-0000;Tverskaya;30;125009;Moscú;Moscú;Rusia;A131025;633;1;39
+Fatima;Al-Mansour;ID Nacional;123456789;03/06/1965;fatima.a@email.sa;+966-11-1234-5678;+966-11-9999-0000;King Fahd Road;50;11564;Riad;Riad;Arabia Saudita;A131025;408;1;23
+Kai;Müller;Personalausweis;1234567890;10/10/1990;kai.m@email.de;+49-30-12345678;+49-30-99990000;Unter den Linden;20;10117;Berlín;Berlín;Alemania;A131025;214;1;12
+Olivia;Dubois;Carte d'identité;123456789;07/08/1975;olivia.d@email.fr;+33-1-2345-6789;+33-1-9999-0000;Champs-Élysées;5;75008;París;Île-de-France;Francia;A131025;418;1;31
+Emily;White;Social Security Card;XXX-XX-XXXX;05/12/1998;emily.w@email.com;+1-212-555-0100;+1-212-555-9999;Broadway;1500;10036;Nueva York;Nueva York;EE. UU.;A131025;210;1;8
+Mateo;Guzmán;DNI;30123456;20/05/1983;mateo.g@email.ar;5491155551234;5491155559999;Rivadavia;1234;C1033ABA;Buenos Aires;Buenos Aires;Argentina;A131025;308;1;21
+Anya;Singh;Pasaporte;Z9876543;01/03/1987;anya.s@email.au;+61-2-1234-5678;+61-2-9999-0000;George Street;100;2000;Sídney;Nueva Gales del Sur;Australia;A131025;304;1;17
+Jin;Lee;Resident Registration;901234-5678901;11/11/1970;jin.l@email.kr;+82-2-1234-5678;+82-2-9999-0000;Gangnam-daero;500;6130;Seúl;Seúl;Corea del Sur;A131025;416;1;30
+Lena;Petersen;Kørekort;1234567890;22/09/1993;lena.p@email.dk;+45-33-123456;+45-33-999900;Nyhavn;33;1051;Copenhague;Hovedstaden;Dinamarca;A131025;425;1;35
+Ricardo;Costa;Cartão de Cidadão;123456789;04/04/1982;ricardo.c@email.pt;+351-21-1234-567;+351-21-9999-000;Rua Augusta;20;1100-053;Lisboa;Lisboa;Portugal;A131025;630;1;36
+Ben;Carter;Passport;GB0987654;16/06/1977;ben.c@email.uk;+44-20-1234-5678;+44-20-9999-0000;Baker Street;221B;NW1 6XE;Londres;Inglaterra;Reino Unido;A131025;306;1;19
+Aisha;Khan;National ID Card;0123-4567890-1;28/01/1991;aisha.k@email.pk;+92-21-1234567;+92-21-9999000;Shahrah-e-Faisal;10;75530;Karachi;Sindh;Pakistán;A131025;407;1;22
+Miguel;Sánchez;Cédula de Identidad;12345678;14/07/1986;miguel.s@email.mx;+52-55-1234-5678;+52-55-9999-0000;Paseo de la Reforma;100;6600;Ciudad de México;Ciudad de México;México;A131025;636;1;42
+Svetlana;Kuznetsova;Паспорт;4015 123456;02/09/1979;svetlana.k@email.ru;+7-812-123-4567;+7-812-999-0000;Nevsky Prospekt;50;191186;San Petersburgo;Leningrado;Rusia;A131025;207;1;6
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D

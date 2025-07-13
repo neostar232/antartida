@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <title>{% block title %}{% endblock %} - Buque Ushuaia</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <!-- Load jQuery if not already loaded. -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <!-- Load the TableSorter plugin. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.32.0/js/jquery.tablesorter.min.js"></script>
+
+  <script type="text/javascript" src="{{ url_for('static', filename='js/ot.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/ps.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/pop.js') }}"></script>
+  <script type="text/javascript" src="{{ url_for('static', filename='js/htmx.min.js') }}"></script>
+
+  <script>
+    document.addEventListener('htmx:load', function() {
+        document.body.addEventListener('click', function(event) {
+            const confirmButton = event.target.closest('.confirm-selection-button');
+            if (confirmButton) {
+                event.preventDefault(); 
+                
+                const form = confirmButton.closest('form');
+                if (form) {
+                    const formData = new FormData(form); // Recolecta todos los datos del formulario
+
+                    // Definir la URL del endpoint Flask
+                    const url = '/{{ url_for('consumption.process_product_selection', external=False) | replace('/', '', 1) }}';
+
+                    fetch(url, {
+                        method: 'POST',
+                        body: formData // Aquí es donde se adjunta el payload
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            // Manejar errores de respuesta HTTP (ej. 404, 500)
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.text(); // Lee la respuesta como texto HTML
+                    })
+                    .then(html => {
+                        // Actualiza el div de resumen de la orden con el HTML recibido
+                        const orderSummaryContainer = document.getElementById('order-summary-container');
+                        if (orderSummaryContainer) {
+                            orderSummaryContainer.innerHTML = html;
+                        } else {
+                            console.error("No se encontró el contenedor '#order-summary-container'");
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al enviar la solicitud o procesar la respuesta:', error);
+                        // Muestra un mensaje de error al usuario
+                        const orderSummaryContainer = document.getElementById('order-summary-container');
+                        if (orderSummaryContainer) {
+                            orderSummaryContainer.innerHTML = '<p style="color: red;">Ocurrió un error al procesar tu selección. Inténtalo de nuevo.</p>';
+                        }
+                    });
+
+                } else {
+                    console.error("Error: No se encontró un formulario padre para el botón de confirmación.");
+                }
+            }
+        });
+    });
+  </script>
+
+ 
+  <nav>
+    <h1><a href="{{ url_for('auth.redirectlink') }}">Gestión Buque Ushuaia</a></h1>
+    <ul>
+      {% if g.user %}
+        <li><span>{{ g.user['username'] }}</span>
+        <li><a href="{{ url_for('auth.logout') }}">Log Out</a>
+      {% else %}      
+        <li><a href="{{ url_for('auth.login') }}">Log In</a>
+      {% endif %}
+    </ul>
+  </nav>
+
+<section class="content">
+  <header>
+    {% block header %}
+
+    {% endblock %}
+  </header>
+  {% for message in get_flashed_messages() %}
+    <div class="flash">{{ message }}</div>
+  {% endfor %}
+  {% block content %}
+  {% endblock %}
+</section>

@@ -1,0 +1,27 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+
+  {% if g.user %}
+  {% endif %}
+  
+{% endblock %}
+
+{% block content %}
+
+  <b>Gestión de Ventas</b><br>
+    <a class ="action" href="{{ url_for('config_vs.sp_select') }}" style="margin-right: 10px;">Alta/Modificación Precios Pto. de Venta</a>
+  <br>
+
+  <!-- 
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+  -->
+
+  <br>
+  {% endblock %}
+  <br>

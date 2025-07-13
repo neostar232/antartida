@@ -1,0 +1,78 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <br>
+
+  <div class="grid-container">
+    
+    <div class="grid-item">
+      <b>Gestión de Productos</b><br>
+      <a class ="action" href="{{ url_for('stock.add_product') }}" style="margin-right: 10px;"> Altas </a>
+      <br>
+      <!-- Bajas: 
+      <a class ="action" href="{{ url_for('stock.del_sp') }}" style="margin-right: 10px;">Individual</a> 
+      <a class ="action" href="{{ url_for('stock.del_mp') }}" style="margin-right: 10px;">Múltiple</a>
+      <br>
+      Modificaciones
+      <br> -->
+      <a class ="action" href="{{ url_for('orders.ordering_sc') }}" style="margin-right: 10px;"> Generar Preorden </a>
+      <br>
+      <a class ="action" href="{{ url_for('orders.sel_upd_order') }}" style="margin-right: 10px;">Modificar Preorden</a>
+      <br>
+      <!--<a class ="action" href="{{ url_for('orders.sel_remove_to_order') }}" style="margin-right: 10px;">Eliminar Productos Preorden</a>
+      <br>-->
+      <a class ="action" href="{{ url_for('orders.view_order') }}" style="margin-right: 10px;">Visualizar Preorden</a>
+      <br>
+      <a class = "action" href="{{ url_for('orders.go_close_preorder') }}">Cerrar Preorden</a>
+      <br>
+      <a class = "action" href="{{ url_for('orders.sel_preorder') }}">Clonación órdenes anteriores</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.select_oc') }}" style="margin-right: 10px;">Recepción Pedidos (Selección Ingreso + Cierre OC)</a>
+    </div>
+    <div class="grid-item">
+      <b>Manejo de Inventario</b><br>
+      <a class ="action" href="{{ url_for('stock.select_oc') }}" style="margin-right: 10px;">Recepción Pedidos (Selección Ingreso + Cierre OC)</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.add_massive_product') }}" style="margin-right: 10px;">Entradas Manuales</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.out_product') }}" style="margin-right: 10px;">Salidas Manuales por eventualidades</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.prodsexist') }}" style="margin-right: 10px;">Disponibilidad</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.available_ptt') }}" style="margin-right: 10px;">Movimientos entre Almacenes</a>
+    </div>
+    <div class="grid-item">
+      <b>Reportes</b><br>
+      <a class="action" href="{{ url_for('reports.prodlist') }}" style="margin-right: 10px;"> Listado de Productos </a>
+      <a class ="action" href="{{ url_for('reports.export_list') }}">Descargar</a>
+      <br>
+      <a class="action" href="{{ url_for('reports.prodstock') }}" style="margin-right: 10px;"> Listado/Control de Stock </a>
+      <a class ="action" href="{{ url_for('reports.export_lc') }}">Descargar</a>
+      <br>
+      <a class="action" href="{{ url_for('reports.prodstockr') }}" style="margin-right: 10px;"> Control de Stock/Punto de Reposición </a>
+      <a class ="action" href="{{ url_for('reports.export_pr') }}">Descargar</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.export_we') }}">Stock por Almacén (Descargar)</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.export_wee') }}">Control de Stock a Vencer (Descargar)</a>
+    </div>
+  </div>
+
+  <!--
+
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+{% endblock %}
+
+  <br> -->
+  <br>

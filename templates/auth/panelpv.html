@@ -1,0 +1,63 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <br>
+
+  <div class="grid-container">
+    
+    <div class="grid-iteml">
+      <img src="/static/drinks.png" alt="Bar">
+      <br>
+      <b>Bar</b><br>      
+    </div>
+
+    <div class="grid-iteml">
+      <img src="/static/internet.png" alt="Internet">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.prods_inet') }}">Internet</a></b><br>
+    </div>
+    
+    <div class="grid-iteml">
+      <img src="/static/clothes.png" alt="Clothes">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.clothes') }}">Ropa y Accesorios</a></b><br>
+    </div>
+
+    <div class="grid-iteml">
+      <img src="/static/merchan.png" alt="Merchandising">
+      <br>
+      <b>Merchandising</b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/consumption.png" alt="Consumos">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.consumption_passenger') }}">Consulta de consumos por Pasajero</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/impresora.png" alt="Impresiones">
+      <br>
+      <b>Reimpresión de Tickets y EECC</b><br>
+    </div>
+
+
+  </div>
+
+  <br>
+
+  <!-- 
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+  <br>
+  -->
+{% endblock %}
+
+
+  <br>

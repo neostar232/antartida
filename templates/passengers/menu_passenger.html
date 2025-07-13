@@ -1,0 +1,45 @@
+{% extends "passengers/base_passenger.html" %}
+{% block title %}Menú Pasajero{% endblock %}
+{% block content %}
+{#
+{% set bar_url = url_for('auth_passengers.category', category='Bar') %}
+{% set internet_url = url_for('auth_passengers.category', category='Internet') %}
+{% set ropa_url = url_for('auth_passengers.category', category='Ropa') %}
+{% set merch_url = url_for('auth_passengers.category', category='Merchandising') %}
+#}
+{% set consumption_url = url_for('auth_passengers.consumption') %}
+<div class="flex-col p-4 h-screen">
+  <h1 class="text-2xl font-bold mb-4">Welcome to the Passenger Menu</h1>
+  {#
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="card bg-white p-4 rounded-lg shadow cursor-pointer" onclick="window.location.href='{{ bar_url }}'">
+      <span class="text-2xl">🍺</span>
+      <h3 class="text-lg font-semibold">Bar</h3>
+    </div>
+    <div class="card bg-white p-4 rounded-lg shadow cursor-pointer" onclick="window.location.href='{{ internet_url }}'">
+      <span class="text-2xl">🌐</span>
+      <h3 class="text-lg font-semibold">Internet</h3>
+    </div>
+    <div class="card bg-white p-4 rounded-lg shadow cursor-pointer" onclick="window.location.href='{{ ropa_url }}'">
+      <span class="text-2xl">👗</span>
+      <h3 class="text-lg font-semibold">Ropa</h3>
+    </div>
+    <div class="card bg-white p-4 rounded-lg shadow cursor-pointer" onclick="window.location.href='{{ merch_url }}'">
+      <span class="text-2xl">🎁</span>
+      <h3 class="text-lg font-semibold">Merchandising</h3>
+    </div>
+  </div>
+  #}
+  <div class="card bg-white p-4 rounded-lg shadow cursor-pointer" onclick="window.location.href='{{ consumption_url }}'">
+    <span class="text-2xl">📊</span>
+    <h3 class="text-lg font-semibold">Passenger Spending Overview</h3>
+  </div>
+  {#
+  <div class="bottom-nav flex justify-around p-4">
+    <span class="text-2xl cursor-pointer">🏠</span>
+    <span class="text-2xl cursor-pointer">➕</span>
+    <span class="text-2xl cursor-pointer">👤</span>
+  </div>
+  #}
+</div>
+{% endblock %} 

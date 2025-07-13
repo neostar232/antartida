@@ -1,7 +1,11 @@
-{% extends 'base.html' %}
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
 
 {% block header %}
-  <h1>{% block title %}Precios de Venta a Pasajeros{% endblock %}</h1>
+  <h1>{% block title %}Alta/Modificación Precios de Venta a Pasajeros{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}

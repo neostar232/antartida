@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'base_r.html' %}
 
 {% block header %}
   <h1>{% block title %}Servicio de Internet{% endblock %}</h1>
@@ -13,7 +13,7 @@
     <select name="id_iplan">
       <option value="" style="width: 200px;">Seleccionar plan</option>
       {% for plan in inet %}
-        <option name="id_iplan" value="{{ plan.id_product,plan.nu_price_usd }}" style="width: 200px;">{{plan.txt_product}}</option>
+        <option name="id_iplan" value="{{ plan.id_product,plan.nu_price_usd }}" style="width: 200px;">{{plan.producto}}</option>
       {% endfor %}
     </select>
     <br>
@@ -23,7 +23,8 @@
             hx-post="{{ url_for('consumption.get_passengers_htmx') }}"
             hx-trigger="change"
             hx-target="#passenger-container"
-            hx-swap="innerHTML">
+            hx-swap="innerHTML"
+            hx-vals='{"show_quantity": "true"}'>
         <option value="">Seleccionar cabina</option>
         {% for cabin in cabs %}
             <option name="id_cabin" value="{{ cabin.id_cabin }}">{{ cabin.tx_cabin_desc }}</option>
@@ -56,17 +57,7 @@
                 }
             });
         </script>
-
-
-
-
-
-        
-    
-
-
     <br><br>
-
     <input type="submit" value="Confirmar selección y asignar plan">
   </form>
 

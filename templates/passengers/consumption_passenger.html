@@ -1,0 +1,25 @@
+{% extends "passengers/base_passenger.html" %}
+{% block title %}Consulta de Consumos{% endblock %}
+{% block content %}
+<div class="flex-col p-4 h-screen">
+  <div class="flex items-center mb-4">
+    <span class="text-2xl cursor-pointer mr-2" onclick="window.location.href='{{ url_for('auth_passengers.menu') }}'">←</span>
+    <h1 class="text-2xl font-bold">Expenses Overview</h1>
+  </div>
+  <div class="bg-white p-4 rounded-lg shadow">
+    <h3 class="text-lg font-semibold mb-2">Your expenses</h3>
+    {% if results and results|length > 0 %}
+      <div class="space-y-4">
+        {% for row in results %}
+          <div class="bg-gray-100 p-4 rounded-lg">
+            <p class="font-semibold">{{ row['fc'] }}</p>
+            <p class="text-gray-600">{{ row['producto'] }} - ${{ '%.2f'|format(row['pc_total']) }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p>No hay consumos registrados.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %} 

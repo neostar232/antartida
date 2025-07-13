@@ -1,0 +1,43 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Consulta de Consumos por pasajero{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <form>
+        <label for="cabpass">Seleccionar Cabina/Pasajero:</label>
+        <select id="id_pass"
+                name="id_pass"
+                hx-get="{{ url_for('consumption.get_consumptions_htmx') }}"
+                hx-trigger="change"
+                hx-target="#consumption_passenger-container"
+                hx-swap="innerHTML">
+            <option value="">Seleccionar Pasajero</option>
+            {% for pass in pcons %}
+                <option name="id_pass" value="{{ pass.id_passenger }}">{{ pass.tx_passenger }}</option>
+            {% endfor %}
+        </select>
+
+        <hr>
+
+        <h2>Consumos del Pasajero Seleccionado</h2>
+        <div id="consumption_passenger-container">
+            <p>Selecciona un pasajero para ver sus consumos aquí.</p>
+        </div>
+
+
+        
+        <!-- <button type="button" class="confirm-selection-button" style="margin-top: 15px; width: 150px;">
+            Confirmar Selección
+        </button> -->
+    </form>
+    
+    
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

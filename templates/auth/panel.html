@@ -1,0 +1,50 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+
+  {% if g.user %}
+  {% endif %}
+  
+{% endblock %}
+
+{% block content %}
+
+
+      <b>Reportes</b><br>
+      <a class="action" href="{{ url_for('reports.prodlist') }}" style="margin-right: 10px;"> Listado de Productos</a>
+      <a class ="action" href="{{ url_for('reports.export_list') }}">Descargar</a>
+      <br>
+      <a class="action" href="{{ url_for('reports.prodstock') }}" style="margin-right: 10px;"> Listado/Control de Stock</a>
+      <a class ="action" href="{{ url_for('reports.export_lc') }}">Descargar</a>
+      <br>
+      <a class="action" href="{{ url_for('reports.prods_sp') }}" style="margin-right: 10px;"> Listado Precios Punto de Venta</a>
+      <a class ="action" href="{{ url_for('reports.export_list_sp') }}">Descargar</a>
+      <br>
+      <a class="action" href="{{ url_for('reports.prodstockr') }}" style="margin-right: 10px;"> Control de Stock/Punto de Reposición</a>
+      <a class ="action" href="{{ url_for('reports.export_pr') }}">Descargar</a>
+      <br>
+      <a class ="action" href="{{ url_for('reports.export_po') }}">Control de Preorden (Descargar)</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.export_we') }}">Stock por Almacén (Descargar)</a>
+      <br>
+      <a class ="action" href="{{ url_for('stock.export_wee') }}">Stock a Vencer en los próximos 30 días (Descargar)</a>
+      <br>
+      <a class ="action" href="{{ url_for('reports.outoforder') }}">Diferencias OC/Recibido</a>
+      <br>
+      <a class ="action" href="{{ url_for('reports.consumption_dates') }}"">Consumos</a>
+      <br>
+      <a class ="action" href="{{ url_for('reports.prodstrf') }}"">Intento Fallido de transferencia</a>
+  <br>
+
+  <!-- 
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+  -->
+
+  <br>
+  {% endblock %}
+  <br>

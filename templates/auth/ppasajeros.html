@@ -1,0 +1,31 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+
+  {% if g.user %}
+  {% endif %}
+  
+{% endblock %}
+
+{% block content %}
+
+  
+  <b>Gestión de Pasajeros</b><br>
+    <a class ="action" href="{{ url_for('passengers.add_psngr') }}" style="margin-right: 10px;">Alta de pasajeros Individual</a>
+    </br>
+    <a class ="action" href="{{ url_for('passengers.add_psngr_ff') }}" style="margin-right: 10px;">Alta de pasajeros Masiva (desde archivo)</a>
+    <a class = "action" href="{{ url_for('passengers.how_to') }}" style="margin-right: 10px;"> (Plantilla/Instructivo) </a>  
+  <br>
+
+  <!-- 
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+  -->
+
+  <br>
+  {% endblock %}
+  <br>

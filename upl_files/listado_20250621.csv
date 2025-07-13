@@ -1,0 +1,101 @@
+﻿Nombre;Apellido;Tipo de Identificación;Nro. de Identificación;Fecha de Nacimiento;Email;Teléfono;Teléfono emergencias;Calle;Número;Cod. Postal;Ciudad;Provincia/Estado;País;Id. de Viaje;Cabina Asignada;IDV2;IDC2
+Ana;García;DNI;35.123.456;15/03/1988;ana.garcia@example.com;+54 9 11 5555-1111;+54 9 11 5555-0001;Av. Libertador;1234;C1001AAA;Buenos Aires;Buenos Aires;Argentina;A131025;204;1;4
+Juan;Pérez;Pasaporte;P1234567;22/07/1975;juan.perez@example.com;+52 1 55 1234-5678;+52 1 55 9876-5432;Paseo de la Reforma;567;6600;Ciudad de México;Ciudad de México;México;A131025;210;1;8
+María;López;RG;12.345.678-9;01/11/1992;maria.lopez@example.com;+55 11 98765-4321;+55 11 91234-5678;Av. Paulista;890;01311-000;São Paulo;São Paulo;Brasil;A131025;301;1;14
+Pedro;Rodríguez;Cédula de Identidad;8.765.432-1;10/04/1980;pedro.rodriguez@example.com;+56 9 9876-5432;+56 9 1234-5678;Merced;456;8320000;Santiago;Región Metropolitana;Chile;A131025;301;1;14
+Laura;Martínez;DNI;40.987.654;28/02/1995;laura.martinez@example.com;+54 9 351 123-4567;+54 9 351 765-4321;Bv. Chacabuco;789;X5000ABJ;Córdoba;Córdoba;Argentina;A131025;305;1;18
+Carlos;Gómez;Pasaporte;G8765432;05/09/1969;carlos.gomez@example.com;+34 600 112233;+34 600 445566;Gran Vía;10;28013;Madrid;Madrid;España;A131025;305;1;18
+Sofía;Díaz;ID Card;987654321;12/06/1990;sofia.diaz@example.com;+1 212 555-1234;+1 212 555-5678;Broadway;100;10001;New York;New York;Estados Unidos;A131025;410;1;25
+Diego;Fernández;DNI;38.012.345;19/01/1985;diego.fernandez@example.com;+54 9 261 888-7777;+54 9 261 111-2222;Arístides Villanueva;300;M5500BGF;Mendoza;Mendoza;Argentina;A131025;414;1;29
+Elena;Sánchez;Cédula de Identidad;1.234.567-8;03/08/1972;elena.sanchez@example.com;+57 310 123-4567;+57 310 987-6543;Carrera 7;20-50;110221;Bogotá;Cundinamarca;Colombia;A131025;413;1;28
+Martín;Torres;Pasaporte;T2345678;14/10/1998;martin.torres@example.com;+49 176 12345678;+49 176 87654321;Unter den Linden;2;10117;Berlín;Berlín;Alemania;A131025;414;1;29
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D
+;;;;;;;;;;;;;;;;#N/D;#N/D

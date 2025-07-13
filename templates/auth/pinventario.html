@@ -1,0 +1,36 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+
+  {% if g.user %}
+  {% endif %}
+  
+{% endblock %}
+
+{% block content %}
+
+
+  <b>Manejo de Inventario</b><br>
+    <a class ="action" href="{{ url_for('stock.select_oc') }}" style="margin-right: 10px;">Recepción Pedidos (Selección Ingreso + Cierre OC)</a>
+    <br>
+    <a class ="action" href="{{ url_for('stock.add_massive_product') }}" style="margin-right: 10px;">Entradas Manuales</a>
+    <br>
+    <a class ="action" href="{{ url_for('stock.out_product') }}" style="margin-right: 10px;">Salidas Manuales por eventualidades</a>
+    <br>
+    <a class ="action" href="{{ url_for('stock.prodsexist') }}" style="margin-right: 10px;">Disponibilidad</a>
+    <br>
+    <a class ="action" href="{{ url_for('stock.available_ptt') }}" style="margin-right: 10px;">Movimientos entre Almacenes</a>  
+  <br>
+
+  <!-- 
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+  -->
+
+  <br>
+  {% endblock %}
+  <br>

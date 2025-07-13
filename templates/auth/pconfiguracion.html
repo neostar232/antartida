@@ -1,0 +1,57 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+
+  {% if g.user %}
+  {% endif %}
+  
+{% endblock %}
+
+{% block content %}
+
+
+  <b>Configuración</b><br>
+    Usuarios:
+    <a class ="action" href="{{ url_for('auth.go_create_user') }}" style="margin-right: 10px;">Altas</a>
+    <a class ="action" href="{{ url_for('auth.go_del_user') }}" style="margin-right: 10px;">Bajas</a>
+    <a class ="action" href="{{ url_for('auth.go_mod_user') }}" style="margin-right: 10px;">Modificación</a>
+    <br>
+    Categorías:
+    <a class ="action" href="{{ url_for('config_vs.add_category') }}" style="margin-right: 10px;">Altas</a>
+    <br>
+    Subcategorías:
+    <a class ="action" href="{{ url_for('config_vs.add_subcategory') }}" style="margin-right: 10px;">Altas</a>
+    <a class ="action" href="{{ url_for('config_vs.export_relcs') }}" style="margin-right: 10px;">Relación con Categorías (Descargar)</a>
+    <br>
+    Unidades de Medida:
+    <a class ="action" href="{{ url_for('config_vs.add_unity') }}" style="margin-right: 10px;">Altas</a>
+    <br>
+    Almacenes:
+    <a class ="action" href="{{ url_for('config_vs.add_wh') }}" style="margin-right: 10px;">Altas</a>
+    <a class ="action" href="{{ url_for('config_vs.del_wh') }}" style="margin-right: 10px;">Bajas</a>
+    <a class ="action" href="{{ url_for('config_vs.mod_wh') }}" style="margin-right: 10px;">Modificación</a>
+    <br>
+    <a class ="action" href="{{ url_for('config_vs.lcr') }}" style="margin-right: 10px;">Precios y Cotizaciones</a>
+    <br>
+    <a class ="action" href="{{ url_for('orders.go_generate_order') }}" style="margin-right: 10px;">Generar Orden de Compra</a>
+    <a class ="action" href="{{ url_for('orders.accessing_rev') }}" style="margin-right: 10px;">Reversión Orden de Compra</a>
+    </br>
+    <a class ="action" href="{{ url_for('orders.view_closed_orders') }}" style="margin-right: 10px;">Visualizar Ordenes de Compra Generadas</a>
+    </br>
+    <a class ="action" href="{{ url_for('cron.cronx') }}" style="margin-right: 10px;">Cerrar sesión y generar bkp de la BD</a>
+    </br>
+    <a class ="action" href="{{ url_for('config_vs.list_cmpgn') }}" style="margin-right: 10px;">Agregar recorridos del año</a>
+  <br>
+
+  <!-- 
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+  -->
+
+  <br>
+  {% endblock %}
+  <br>

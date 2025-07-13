@@ -1,0 +1,35 @@
+{% extends "passengers/base_passenger.html" %}
+{% block title %}Login Pasajero{% endblock %}
+{% block content %}
+<div class="flex flex-col items-center justify-center h-screen bg-gradient-to-b from-blue-200 to-blue-400">
+  <!--<img src="https://via.placeholder.com/100" alt="Logo" class="mb-8">-->
+  <img src="/static/buquex.png" alt="Buque Ushuaia">
+  <div class="bg-white p-6 rounded-lg shadow-lg w-80">
+    <h2 class="text-2xl font-bold text-center mb-4">Log in</h2>
+    <form method="POST" action="{{ url_for('auth_passengers.front') }}">
+      <input type="text" name="tx_email" placeholder="Email" class="w-full p-2 mb-4 border rounded">
+      <div class="relative">
+        <input type="password" name="password" placeholder="Password" class="w-full p-2 mb-4 border rounded" id="password">
+        <span class="absolute right-3 top-3 cursor-pointer" onclick="togglePassword()">👁️</span>
+      </div>
+      <button class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600" type="submit">Log in</button>
+      <a href="#" class="block text-center text-blue-500 mt-2">Forgot your password?</a>
+    </form>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="mt-2 text-red-500">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </div>
+</div>
+<script>
+function togglePassword() {
+  const password = document.getElementById('password');
+  password.type = password.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %} 
