@@ -39,9 +39,9 @@ query_ls = """
                 -- c.tx_category AS categoria,
                 u.tx_unity AS presentacion,  
                 b.num_reorder_point AS punto_repedido,
-                SUM(p.q_batch_balance) AS existencias,
+                p.q_stock AS existencias,
                 CASE
-                    WHEN b.num_reorder_point >= SUM(p.q_batch_balance) THEN 'Solicitar'
+                    WHEN b.num_reorder_point >= p.q_stock THEN 'Solicitar'
                     ELSE 'OK'
                 END AS control_stock
             FROM bt_product b INNER JOIN lkp_categories c
@@ -50,11 +50,19 @@ query_ls = """
             ON b.id_subcategory = s.id_subcategory
             INNER JOIN lkp_units u
             ON b.id_unity = u.id_unity
-            INNER JOIN bt_stock p
+            INNER JOIN (
+                SELECT
+                    id_product,
+                    dt_io,
+                    q_stock,
+                    RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+                FROM bt_stock
+                WHERE id_warehouse <= 11
+            ) p
             ON b.id_product = p.id_product
             WHERE b.flag_ctrl = 1
-            AND p.id_warehouse <= 11
-            GROUP BY 1, 2, 3, 4, 5
+            AND p.stock_det = 1
+            --GROUP BY 1, 2, 3, 4, 5
             ORDER BY 2, 3, 4, 1
             """
 
@@ -90,44 +98,46 @@ query_cons = """
 # Productos con diferencia entre lo solicitado y lo recibido
 query_outorder = """
             SELECT
-                b.id_product AS cod_producto,
+                m.id_product AS cod_producto,
                 s.tx_subcategory ||': '|| b.tx_product ||' (' || u.tx_unity ||')' AS producto,
-                p.id_order AS oc,
-                CASE
-                    WHEN p.cuit_supplier <> 99999999999 THEN p.q_in
-                    ELSE 0
-                END AS q_solicitada,
-                IFNULL(CASE
-                    WHEN p.cuit_supplier <> 99999999999 AND LENGTH(p.q_real) = 0 THEN 0
-                    WHEN p.cuit_supplier = 99999999999 AND p.q_real = 0 THEN p.q_in
-                    ELSE p.q_real
-                END, 0) AS q_recibida,
-                CASE
-                    WHEN p.cuit_supplier <> 99999999999 THEN p.q_real - p.q_in
-                    ELSE 0
-                END AS dife,
-                CASE
-                    WHEN p.cuit_supplier = 99999999999 THEN p.q_in
-                    ELSE 0
-                END AS x_repo
-            FROM bt_product b INNER JOIN lkp_categories c
+                m.oc,
+                m.q_solicitada,
+                m.q_recibida,
+                m.dife,
+                m.x_repo
+            FROM
+            (
+            SELECT
+                id_product,
+                id_order AS oc,
+                q_in AS q_solicitada,
+                q_real AS q_recibida,
+                q_real - q_in AS dife,
+                0 AS x_repo    
+            FROM bt_in_out_prods
+            WHERE fl_sok = 0
+
+            UNION
+
+            SELECT
+                id_product,
+                id_order AS oc,
+                0 AS q_solicitada,
+                0 AS q_recibida,
+                0 AS dife,
+                q_in AS x_repo
+            FROM bt_in_out_prods
+            WHERE cuit_supplier LIKE '9999%'
+            ) m
+            INNER JOIN bt_product b
+            ON m.id_product = b.id_product
+            INNER JOIN lkp_categories c
             ON b.id_category = c.id_category
             INNER JOIN lkp_subcategories s
             ON b.id_subcategory = s.id_subcategory
             INNER JOIN lkp_units u
             ON b.id_unity = u.id_unity
-            INNER JOIN bt_in_out_prods p
-            ON b.id_product = p.id_product
-            LEFT JOIN lkp_warehouse w
-            ON p.id_warehouse = w.id_warehouse
-            WHERE p.id_order > 0
-            AND b.flag_ctrl = 1
-            AND (p.fl_sok = 0
-            OR LENGTH(p.fl_sok) = 0
-            OR p.cuit_supplier = 99999999999
-            OR dife <> 0
-            OR x_repo > 0)
-            ORDER BY p.id_order DESC;
+            ORDER BY m.oc DESC
             """
 
 
@@ -227,6 +237,23 @@ query_prods_sp = """SELECT
                 ORDER BY 2;
                 """
 
+# Lista de precios
+query_plist = """
+            SELECT
+                p.id_product,
+                s.tx_subcategory||' - '|| p.tx_product ||' ('||u.tx_unity||')' AS producto,
+                pp.nu_price_usd
+            FROM bt_product_prices pp INNER JOIN bt_product p
+            ON pp.id_product = p.id_product
+            INNER JOIN lkp_subcategories s
+            ON p.id_subcategory = s.id_subcategory
+            INNER JOIN lkp_units u
+            ON p.id_unity = u.id_unity
+            WHERE DATE(pp.dt_to) > CURRENT_DATE
+            AND p.flag_ctrl = 1
+            ORDER BY 2;
+            """
+
 # Productos del punto de venta
 @bp.route("/prods_sp")
 @login_required
@@ -235,22 +262,6 @@ def prods_sp():
     prpv = db.execute(query_prods_sp).fetchall()
     return render_template("reports/prods_sp.html", prpv = prpv)
     
-
-@bp.route("/panel")
-@login_required
-def panel():
-    return render_template("reports/panel.html")
-
-
-@bp.route("/panelb")
-@login_required
-def panelb():
-    return render_template("reports/panelb.html")
-
-@bp.route("/panelpv")
-@login_required
-def panelpv():
-    return render_template("reports/panelpv.html")
 
 
 @bp.route("/list")
@@ -373,3 +384,12 @@ def export_list_sp():
         response.headers['Content-Disposition'] = 'attachment; filename=precios_punto_de_venta.xlsx'
         response.headers["Content-Type"] = "application/vnd.ms-excel"
         return response
+    
+
+# Generacion de la lista de precios
+@bp.route("/bar_sp/price_list")
+@login_required
+def price_list():
+    db = get_db()
+    plist = db.execute(query_plist).fetchall()
+    return render_template("bar_sp/price_list.html", plist=plist)

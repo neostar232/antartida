@@ -11,10 +11,83 @@ pv2@@ushuaia.com // pswdepv2 -- Usuario del Comedor
 pv3@@ushuaia.com // pswdepv3 -- Usuario del Room Service
 
 ############################# Voy dejando acá las ultimas actualizaciones con fecha #############################
+10/07
+# Se configura la barra de navegación
+# Se eliminaron las referencias a los archivos .map en *boostrap.*
+# Se agregó .ico a fin de que no genere error en consola
+
+
+09/07
+# Se agrega la biblioteca 'Flask_Caching', a fin de no generar caché (pip install flask_caching)
+# En la medida de lo posible, se reemplazaron los enlaces a librerías externas a archivos locales
+# Se completan para los puntos de venta, las acciones de "Ropa.." y "Consulta..."
+# Para "Ropa y Accesorios", el alcance llega hasta el registro en la cuenta del pasajero (no toca stock)
+# Los consumos por pasajeros se muestran sólo si el pasajero realizó consumos y el trip esté abierto
+# Se agrega el apartado de "Reimpresión..." por eventuales fallas en el momento de concretar el consumo
+# Se eliminaron archivos de prueba
+
+
+# 05/07
+Acceso a través de http://127.0.0.1:5000/passengers/auth (chequear URL/puerto local)
+Se modifica en login_passenger.html el logo (se coloca el del buque)
+
+
+# 04/07/25
+* Se agregó Blueprint para el front pasajeros auth_passengers
+* Se agregaron varios html del front de pasajeros en /templates
+
+## Login de pasajeros:
+* Nuevo formulario y lógica para que los pasajeros puedan iniciar sesión con su email y contraseña. Al autenticarse, se guarda su ID y email en la sesión.
+
+## Menú principal de pasajero:
+* Pantalla con acceso rápido a las distintas categorías de productos y a la consulta de consumos personales.
+
+## Consulta de consumos personales:
+* Al hacer clic en “Consulta de Consumos”, el pasajero ve directamente una lista de todos sus consumos registrados, sin necesidad de seleccionar cabina ni usuario.
+* Cada consumo muestra la fecha, el producto y el precio total.
+
+## Seguridad:
+* Solo el pasajero logueado puede ver sus propios consumos. Si no hay sesión activa, se redirige al login.
+
+## Código modular:
+* Todo el flujo de pasajeros está separado en un blueprint (auth_passengers) y en plantillas HTML específicas para cada pantalla.
+
+19/06
+# Se mueven las funciones de acceso y los archivos .html relacionados, a uan ubicación mas representativa
+# 
+
+
+
+17/06
+# Se actualiza reportería: sólo aquellos reportes que referencian existencias
+# Se concilia la totalidad del stock
+# Se controlan y corrigen categorías y subcategorías de aproximadamente 50 productos (puede haber más)
+# Se revisó el Listado de diferencias OC Vs. Recibido (por favor, chequear)
+
+
+
+16/06
+# Se agrega campo 'dt_last_update' a la tabla 'bt_product' dónde se verá reflejado el momento de actualización de
+cada producto en particular o lote de productos, de corresponder (los productos que no tienen un valor mayor
+a 0 en ese campo, es debido a que no se realizaron test con los mismos)
+# Se modifican las funciones que impactan en el inventario, dónde intervienen productos que forman parte de la
+preorden, a fin de que la misma indique la existencia de productos antes del cierre de la preorden
+# Se modifica formulario de alta individual de pasajeros (marca de campo obligatorio)
+
+
+14/06
+# Se agrega campo 'q_stock' a la tabla 'bt_product' dónde se verá reflejada la existencia de cada producto
+# Se ejecuta consulta que actualiza el campo nombrado anteriormente (para almacenes con id <= 11)
+# Se modifican las distintas funciones dónde interviene la tabla temporal 'nsv' en 'stock.py'
+# Se renombra la base 'ushuaia_desa.db' a 'usuahia.db', volviendo a la nomenclatura original
+# Se modifican los campos obligatorios de la tabla 'bt_passenger'
+
+
 07/06
 # Se amplía el ancho del contenedor del sitio, para no scrollear al acceder a las nuevas secciones
 # Se modifica tabla de pasajeros (falta la generación automática y cifrada de psw)
 # PENDING: pasar a pestañas el acceso del Administrador a los menúes
+
 
 31/05
 # Los pendings del 28/05 ya están listos para testearse; sólo valida en el usuario, no en el servidor

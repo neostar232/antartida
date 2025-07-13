@@ -92,7 +92,7 @@ def login():
             # Agrego el ingreso a la tabla de sesiones
             db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
             db.commit()
-            return redirect(url_for("reports.panel"))
+            return redirect(url_for("auth.panel"))
         if error is None and (user['id_role'] == 2):
             # Almacena el usuario en una nueva sesion y regresa al index
             session.clear()
@@ -101,7 +101,7 @@ def login():
             # Agrego el ingreso a la tabla de sesiones
             db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
             db.commit()
-            return redirect(url_for("reports.panelb")) # --> micropanel
+            return redirect(url_for("auth.panelb")) # --> micropanel
         if error is None and (user['id_role'] == 5):
             # Almacena el usuario en una nueva sesion y regresa al index
             session.clear()
@@ -110,7 +110,7 @@ def login():
             # Agrego el ingreso a la tabla de sesiones
             db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
             db.commit()
-            return redirect(url_for("reports.panelpv")) # --> micropanel
+            return redirect(url_for("auth.panelpv")) # --> micropanel
         flash(error)
     return render_template("auth/login.html")
 
@@ -120,11 +120,11 @@ def redirectlink():
         rolx = session.get("role")
         error = None
         if error is None and rolx == 1:
-            return redirect(url_for("reports.panel"))
+            return redirect(url_for("auth.panel"))
         if error is None and rolx == 2:
-            return redirect(url_for("reports.panelb"))
+            return redirect(url_for("auth.panelb"))
         if error is None and rolx == 5:
-            return redirect(url_for("reports.panelpv"))
+            return redirect(url_for("auth.panelpv"))
 
 
 @bp.route("/logout")
@@ -235,3 +235,47 @@ def mod_user():
     return render_template("auth/register.html")
 
 
+# Redirecionamiento a los paneles de control según el rol del usuario
+@bp.route("/panel")
+@login_required
+def panel():
+    return render_template("auth/panel.html")
+
+
+@bp.route("/panelb")
+@login_required
+def panelb():
+    return render_template("auth/panelb.html")
+
+
+@bp.route("/panelpv")
+@login_required
+def panelpv():
+    return render_template("auth/panelpv.html")
+
+
+# Acceso a las solapas de la barra de Navegación
+@bp.route("/productos")
+@login_required
+def productos():
+    return render_template("auth/pproductos.html")
+
+@bp.route("/inventario")
+@login_required
+def inventario():
+    return render_template("auth/pinventario.html")
+
+@bp.route("/pasajeros")
+@login_required
+def pasajeros():
+    return render_template("auth/ppasajeros.html")
+
+@bp.route("/ventas")
+@login_required
+def ventas():
+    return render_template("auth/pventas.html")
+
+@bp.route("/configuracion")
+@login_required
+def configuracion():
+    return render_template("auth/pconfiguracion.html")

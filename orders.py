@@ -39,11 +39,15 @@ query_pr_sel = """
             INNER JOIN lkp_units u
             ON b.id_unity = u.id_unity
             LEFT JOIN bt_stock p
-            ON b.id_product = p.id_product
+            ON (
+                b.id_product = p.id_product
+                AND p.id_warehouse <= 11
+                )
             LEFT JOIN lkp_warehouse w
             ON p.id_warehouse = w.id_warehouse
             WHERE b.flag_ctrl = 1
-            -- AND w.id_warehouse <= 11 -- Agregado 20250103 // Se elimina condición 20250510
+            -- AND (w.id_warehouse <= 12 -- Agregado 20250103 // Se elimina condición 20250510 // back 20250614
+            -- OR p.id_warehouse IS NULL)
             AND c.id_category NOT IN (SELECT DISTINCT id_category FROM temp_order)
             AND c.id_category IN (
             """
@@ -404,7 +408,7 @@ def go_generate_order():
 # Acá se procesa el pedido
 # Genera el nro de orden
 # Elimina los productos sin unidades
-# Ingresa todos los productos a la tabla de ingresog
+# Ingresa todos los productos a la tabla de ingresos
 # Vacia la tabla de preordenes
 # Vuelve a 0 el autoincremental de la tabla de preordenes
 @bp.route("/orders/generate_order", methods=("GET", "POST"))
@@ -507,9 +511,9 @@ def go_close_preorder():
     if ctrl_comp < 1:
         flash('No existe una preorden para cerrar.')
         return redirect(url_for("auth.redirectlink"))
-     # ur = user role
+    # ur = user role
     ur = session.get("role")
-    # vo = verificación orden
+    # Verificación orden
     vo = db.execute(f"""SELECT COUNT(DISTINCT fl_close) AS marca FROM temp_order WHERE fl_close = '{ur}' """).fetchone()[0]
     if vo == 1:
         flash('No existe una preorden para ser cerrada.')
@@ -527,6 +531,14 @@ def close_preorder():
         db.commit()
         flash('Preorden cerrada exitosamente')
     return redirect(url_for("auth.redirectlink"))
+
+# Cancela cierre preorden
+@bp.route("/orders/cancel_close_preorder", methods=("GET", "POST"))
+@login_required
+def cancel_close_preorder():
+    if request.method == "POST":
+        flash('Se ha cancelado el cierre de la Preorden')
+        return redirect(url_for("auth.redirectlink"))
 
 
 # Revierte el cierre de la preorden para cargar mas productos
@@ -612,8 +624,8 @@ def sel_preorder():
 def detail_preorder():
         # Busco ordenes de compra generadas anteriormente
         db = get_db()
-        id = request.args.get('id_order', None) # El id está definido en el action del form
-        spo = db.execute(query_clone1 + ' ORDER BY producto', (id))
+        id = request.args.get("id_order")
+        spo = db.execute(query_clone1 + ' ORDER BY producto', (id,))
         db.commit()
         return render_template("reports/prod_preorder_enum.html", spo = spo)
 

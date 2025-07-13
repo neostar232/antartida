@@ -1,15 +1,15 @@
 import os
-from flask import Flask, redirect, url_for, request, session
+from flask import Flask, redirect, url_for, request, session, send_from_directory
 import datetime as dt
-import fnmatch
+from flask_caching import Cache
+
 
 def create_app(test_config=None):
     # Crea y configura una instancia de la aplicacion Flask
     app = Flask(__name__, instance_relative_config=False)
     app.config.from_mapping(
         SECRET_KEY='ysemarchoyasubarcolellamolibertad',  
-        # DATABASE = os.path.join(app.root_path, 'db3', 'ushuaia.db'),
-        DATABASE = os.path.join(app.root_path, 'db3', 'ushuaia_desa.db'),
+        DATABASE = os.path.join(app.root_path, 'db3', 'ushuaia.db'),
     )
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -22,6 +22,9 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    # Configuración de caché
+    cache = Cache(app, config={'CACHE_TYPE': 'null'})
 
     @app.route("/")
     def index():
@@ -60,10 +63,13 @@ def create_app(test_config=None):
         else:
             None
 
+    @app.route('/favicon.ico')
+    def favicon():
+        return send_from_directory(app.static_folder, 'favicon.ico', mimetype='static/favicon.ico')
 
-
+   
     # Aplicando los Blueprints a la app
-    from . import auth, reports, suppliers, stock, config_vs, orders, cron, bar_sp, consumption, passengers
+    from . import auth, reports, suppliers, stock, config_vs, orders, cron, consumption, passengers, auth_passengers
     
     app.register_blueprint(auth.bp)
     app.register_blueprint(reports.bp)
@@ -72,8 +78,8 @@ def create_app(test_config=None):
     app.register_blueprint(config_vs.bp)
     app.register_blueprint(orders.bp)
     app.register_blueprint(cron.bp)
-    app.register_blueprint(bar_sp.bp)
     app.register_blueprint(consumption.bp)
     app.register_blueprint(passengers.bp)
+    app.register_blueprint(auth_passengers.bp)
     app.add_url_rule("/", endpoint="index")
     return app

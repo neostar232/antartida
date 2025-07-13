@@ -64,18 +64,13 @@ query_exist = query_exist_base + "GROUP BY 1, 2 ORDER BY 2, 1"
 query_exist_expiry = query_exist_base + " AND p.dt_expiry <= DATE('NOW','+1 MONTHS') GROUP BY 1, 2 ORDER BY 2, 1"
 
 # Listado de atributos de alta fijos: categorías, subcategorías, unidad de medida
-query_cat = """
-            SELECT * FROM lkp_categories ORDER BY tx_category
-            """
-query_scat = """
-            SELECT * FROM lkp_subcategories ORDER BY tx_subcategory
-            """
-query_units = """
-            SELECT * FROM lkp_units ORDER BY tx_unity
-            """
-query_wh = """
-            SELECT * FROM lkp_warehouse WHERE flag_ctrl = 1
-            """
+query_cat = """SELECT * FROM lkp_categories ORDER BY tx_category"""
+
+query_scat = """SELECT * FROM lkp_subcategories ORDER BY tx_subcategory"""
+
+query_units = """SELECT * FROM lkp_units ORDER BY tx_unity"""
+
+query_wh = """SELECT * FROM lkp_warehouse WHERE flag_ctrl = 1"""
 
 # Ordenes de compra con posibilidad de ingresar productos
 query_sel_oc = """
@@ -173,7 +168,7 @@ query_us = """
             FROM bt_stock
             WHERE q_batch_balance > 0
             AND id_warehouse <= 12
-            AND q_stock > 0
+            AND (q_stock > 0 OR q_stock IS NULL)
             """
 
 # Creo temporal para agregar las confirmaciones de la OC en el stock
@@ -235,6 +230,22 @@ query_movebwh = """
                 AND id_warehouse < 12
                 ORDER BY id_product, id_io
                 """
+
+# Query para actualizar el stock de los productos en la tabla bt_products (no en todos los casos)
+query_jafc = """
+                UPDATE bt_product SET q_stock = a.q_stock
+                FROM (
+                SELECT
+                    s.id_product,
+                    s.q_stock,
+                    RANK() OVER (PARTITION BY s.id_product ORDER BY s.id_io DESC) AS stock_det
+                FROM bt_stock s INNER JOIN ttis t
+                ON s.id_product = t.id_product
+                WHERE s.id_warehouse <= 11
+                ) a
+                WHERE a.stock_det = 1
+                AND bt_product.id_product = a.id_product;
+            """
 
 
 # Ejecuto los listados de atributos para que se direccionen a las páginas dónde deben utilizarse
@@ -387,7 +398,7 @@ def list_masive_add_prods():
     return render_template("stock/in_multi_products.html", whs = whs, prods = prods)
 
 
-# Entrada masiva de productos (recepcion de remito del proveedor)
+# Entrada de productos fuera de la OC
 @bp.route("/stock/add_massive", methods=["GET", "POST"])
 @login_required
 def add_massive_product():
@@ -428,17 +439,54 @@ def add_massive_product():
                 db.execute("INSERT INTO bt_stock (dt_io, id_product, id_warehouse, dt_expiry, q_inn, q_out, q_batch_balance) VALUES (?,?,?,?,?,?,?)",
                            (dtodayfull, prd, idwh, expdate, qin, qexit, qin)
                            )
-                # Actualizo las partidas y el stock general
-                db.execute("""DROP TABLE IF EXISTS nsv""")
-                db.execute(query_us + ' ORDER BY id_product, id_io;').fetchall()
-                db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
+                # Actualizo las partidas y el stock general en bt_stock
+                db.execute("""UPDATE bt_stock SET q_out = 0 WHERE q_out IS NULL""")
+                db.execute('UPDATE bt_stock SET q_stock = a.stock_av FROM (' + query_us + ') a WHERE bt_stock.id_io = a.id_io').fetchall()
+                # Actualizo la tabla de productos con el stock actualizado y la hora de la actualización
+                ptu = """
+                    UPDATE bt_product SET q_stock = a.q_stock, dt_last_update = (?)
+                    FROM (
+                    SELECT
+                        id_product,
+                        dt_io,
+                        q_stock,
+                        RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+                    FROM bt_stock
+                    WHERE id_warehouse <= 11
+                    AND id_product = (?)
+                    ) a
+                    WHERE a.stock_det = 1
+                    AND bt_product.id_product = a.id_product;
+                    """
+                db.execute(ptu, (dtodayfull, prd,)).fetchall()
+                # Compruebo si el producto está en la PO y de existir, actualizo el stock que se indica en PO
+                sppo = db.execute(f"""SELECT COUNT(*) AS quantity FROM temp_order""").fetchone()[0]
+                if sppo > 0:
+                    tou = """
+                        UPDATE temp_order SET q_exist = a.q_stock
+                        FROM (
+                        SELECT
+                            id_product,
+                            dt_io,
+                            q_stock,
+                            RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+                        FROM bt_stock
+                        WHERE id_warehouse <= 11
+                        AND id_product = (?)
+                        ) a
+                        WHERE a.stock_det = 1
+                        AND temp_order.id_prod = a.id_product;
+                        """
+                    db.execute(tou, (prd,)).fetchall()
+                else:
+                    pass
                 db.commit()
             flash('Productos ingresados correctamente')
             return redirect(url_for("auth.redirectlink"))
     return render_template("stock/in_multi_products.html")
 
 
-# Exportacion de las existencias a vencer por almacen
+# Exporto a excel, las existencias a vencer por almacen
 @bp.route("/stock/export_wee")
 @login_required
 def export_wee():
@@ -514,10 +562,23 @@ def enter_wprods():
             # Inserto los productos de la temporal en la tabla de stock (bt_stock)
             db.execute(query_addocst).fetchall()
             # Actualizo las partidas y el stock general
-            db.execute("""DROP TABLE IF EXISTS nsv""")
-            db.execute(query_us + ' ORDER BY id_product, id_io;').fetchall()
-            db.execute("""UPDATE bt_stock SET q_out = 0 WHERE q_out IS NULL""")
-            db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
+            db.execute('UPDATE bt_stock SET q_out = 0 WHERE q_out IS NULL').fetchall()
+            db.execute('UPDATE bt_stock SET q_stock = a.stock_av FROM (' + query_us + ') a WHERE bt_stock.id_io = a.id_io').fetchall()
+            # Actualizo en la bt_product, el stock de los productos ingresados
+            db.execute(query_jafc).fetchall()
+            # Actualizo en la bt_product, la fecha de los productos ingresados
+            uld = ('UPDATE bt_product SET dt_last_update = (?) WHERE id_product = (?)')
+            if flvs != '':
+                db.execute(uld, (dtodayfull, idprods,)).fetchall()
+            else:
+                pass
+            # Compruebo si el producto está en la PO y de existir, actualizo el stock que se indica en PO
+            sppo = db.execute(f"""SELECT COUNT(*) AS quantity FROM temp_order""").fetchone()[0]
+            if sppo > 0:
+                upd_tmpordr = """UPDATE temp_order SET q_exist = a.stock_av"""
+                db.execute(upd_tmpordr + ' FROM (' + query_us + ') a WHERE temp_order.id_prod = (?)', (idprods,)).fetchall()
+            else:
+                pass
             db.commit()
         flash('Los productos ingresados se actualizaron correctamente')
         return redirect(url_for("auth.redirectlink"))
@@ -553,7 +614,7 @@ def enter_transf():
         transf[['id_product', 'id_warehouse', 'q_prodt']] = transf[['id_product', 'id_warehouse', 'q_prodt']].apply(pd.to_numeric)
         # Obtengo los índices de las filas a eliminar, que son aquellas en la que la q a transferir es 0
         indexNum = transf[transf['q_prodt'] == 0].index
-        # Elimino los índices encontrados
+        # Elimino los índices
         transf.drop(indexNum, inplace = True)
         # Regenero los indices
         transf.reset_index(drop=True, inplace=True)
@@ -689,7 +750,44 @@ def enter_transf():
                     """
         qry_str2 = " ) a  WHERE bt_stock.id_io = a.id_io"
         squpd = (qry_str1 + ' AND id_product IN (' + (', '.join(map(str, res_only_prods))) + ') ' + qry_str2)
+        # Fin concatenacion
         db.execute(squpd)
+        # Actualizo - concatenando - los productos con movimientos en bt_product
+        ptu = """
+            UPDATE bt_product SET q_stock = a.q_stock
+            FROM (
+            SELECT
+                id_product,
+                q_stock,
+                RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+            FROM bt_stock
+            WHERE id_warehouse <= 11
+            """
+        end_string = ") a WHERE a.stock_det = 1 AND bt_product.id_product = a.id_product"
+        run_str = (ptu + end_string + ' AND a.id_product IN (' + (', '.join(map(str, res_only_prods))) + ') ')
+        db.execute(run_str)
+        # Actualizo la fecha de actualización de los productos
+        uld = ('UPDATE bt_product SET dt_last_update = (?) WHERE id_product IN (' + (', '.join(map(str, res_only_prods))) + ')')
+        db.execute(uld, (dtodayfull,)).fetchall()
+        # Verifico existencia de preorden para actualizar las existencias
+        sppo = db.execute(f"""SELECT COUNT(*) AS quantity FROM temp_order""").fetchone()[0]
+        if sppo > 0:
+            tou = """
+            UPDATE temp_order SET q_exist = a.q_stock
+            FROM (
+            SELECT
+                id_product,
+                dt_io,
+                q_stock,
+                RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+            FROM bt_stock
+            WHERE id_warehouse <= 11
+            """
+            end_stringto = ") a WHERE a.stock_det = 1 AND temp_order.id_prod = a.id_product"
+            run_tou = (tou + end_stringto + ' AND a.id_product IN (' + (', '.join(map(str, res_only_prods))) + ') ')
+            db.execute(run_tou)
+        else:
+            pass
         db.commit()
         # Controlo que los valores a transferir no sean nulos
         comprob = (dfx['transfer'] != 0).sum()
@@ -701,7 +799,7 @@ def enter_transf():
         return redirect(url_for("auth.redirectlink"))
 
 
-# Detalle de los almacenes para seleccionar en el alta masiva
+# Detalle de los almacenes para seleccionar en la baja por eventualidades
 @bp.route("/stock/out_product")
 @login_required
 def out_product():
@@ -722,7 +820,7 @@ def add_out_product():
         prd = request.form["id_dop"]
         idwh = request.form["id_wh"]
         idwhr = '15'
-        expdate = request.form["expiry_date"]
+        # expdate = request.form["expiry_date"]
         qout = request.form["qty_out"]
         txro = request.form["reason_out"]
         reason = tx_mot + ': ' + txro
@@ -743,26 +841,56 @@ def add_out_product():
                 -- AND DATE(dt_expiry) = DATE((?))
                 AND q_batch_balance >= (?);
                 """
-        # db.execute(ctt, (prd, idwh, expdate, qout)).fetchall()
         db.execute(ctt, (prd, idwh, qout)).fetchall()
         comprob = db.execute('SELECT COUNT(*) AS q FROM ptrs;').fetchone()[0]
         if comprob < 1:
             flash('No existen productos a dar de baja con esa combinatoria. Por favor, chequee que productos son los que debe retirar del stock.')
             return redirect(url_for("auth.redirectlink"))
         # Al estar todo OK, agrego registros sumando al almacén de bajas y restando del almacén origen
-        # db.execute("INSERT INTO bt_stock (dt_io, id_product, id_warehouse, dt_expiry, q_inn, q_batch_balance, tx_reason) VALUES (?,?,?,?,?,?,?)",
-        #                    (dtoday, prd, idwhr, expdate, qout, qout, reason)
-        #                    )
         db.execute("INSERT INTO bt_stock (dt_io, id_product, id_warehouse, q_inn, q_batch_balance, tx_reason) VALUES (?,?,?,?,?,?)",
                            (dtodayfull, prd, idwhr, qout, qout, reason)
                            )
-        # numrow = db.execute("SELECT id_io FROM ptrs WHERE rn = 1;")
         upd_out = """UPDATE bt_stock SET q_out = IFNULL(q_out, 0) + (?), q_batch_balance = (IFNULL(q_batch_balance, 0) - (?)) WHERE id_io = (SELECT id_io FROM ptrs WHERE rn = 1)"""
         db.execute(upd_out, (qout, qout,))
         # Actualizo las partidas y el stock general
-        db.execute("DROP TABLE IF EXISTS nsv")
-        db.execute(query_us).fetchall()
-        db.execute("""UPDATE bt_stock SET q_stock = (SELECT stock FROM nsv WHERE nsv.id_io = bt_stock.id_io)""")
+        db.execute("""UPDATE bt_stock SET q_out = 0 WHERE q_out IS NULL""")
+        db.execute('UPDATE bt_stock SET q_stock = a.stock_av FROM (' + query_us + ') a WHERE bt_stock.id_io = a.id_io').fetchall()
+        ptu = """
+            UPDATE bt_product SET q_stock = a.q_stock, dt_last_update = (?)
+            FROM (
+            SELECT
+                id_product,
+                q_stock,
+                RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+            FROM bt_stock
+            WHERE id_warehouse <= 11
+            AND id_product = (?)
+            ) a
+            WHERE a.stock_det = 1
+            AND bt_product.id_product = a.id_product;
+            """
+        db.execute(ptu, (dtodayfull, prd,)).fetchall()
+        # Compruebo si el producto está en la PO y de existir, actualizo el stock que se indica en PO
+        sppo = db.execute(f"""SELECT COUNT(*) AS quantity FROM temp_order""").fetchone()[0]
+        if sppo > 0:
+            tou = """
+                UPDATE temp_order SET q_exist = a.q_stock
+                FROM (
+                    SELECT
+                        id_product,
+                        dt_io,
+                        q_stock,
+                        RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+                    FROM bt_stock
+                    WHERE id_warehouse <= 11
+                    AND id_product = (?)
+                    ) a
+                WHERE a.stock_det = 1
+                AND temp_order.id_prod = a.id_product;
+                """
+            db.execute(tou, (prd,)).fetchall()
+        else:
+            pass
         db.commit()
         flash('Baja ingresada correctamente')
         return redirect(url_for("auth.redirectlink"))
