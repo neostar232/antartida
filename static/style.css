@@ -7,7 +7,7 @@ html {
 }
 
 body {
-  max-width: 1280px; /* antes 960 */
+  max-width: 960px;
   margin: 0 auto;
   background: white;
   height: 100%;
@@ -200,28 +200,13 @@ tfoot td {
   display: grid;
   column-gap: 5px;
   row-gap: 5px;
-  grid-template-columns: 33% 33% 33%; /* antes 50% 50% */
+  grid-template-columns: 50% 50%;
   background-color: #ffffff;
   padding: 10px;
 }
 
 .grid-item {
   background-color: rgba(182, 182, 182, 0.8);
-  border: 0.5px solid rgba(0, 0, 0, 0.158);
-  padding: 10px;
-  text-align: left;
-}
-
-.grid-iteml {
-  background-color: rgba(238, 233, 233, 0.8);
-  border: 0.5px solid rgba(0, 0, 0, 0.158);
-  padding: 10px;
-  text-align: left;
-}
-
-.grid-itemf {
-  grid-column: 1/-1;
-  background-color: rgba(238, 233, 233, 0.8);
   border: 0.5px solid rgba(0, 0, 0, 0.158);
   padding: 10px;
   text-align: left;
@@ -278,19 +263,3 @@ tfoot td {
   border: 1px solid #ddd; /* Add a grey border */
   margin-bottom: 12px; /* Add some space below the input */
 }
-
-
-.desplegable {
-  width: 200px;
-}
-
-.input-container {
-  display: inline-block;
-  margin-right: 30px; /* Espacio entre los inputs */
-}
-
-.input-container input {
-  display: inline-block;
-  width: 120px; /* Ancho de los inputs */
-}
-
