@@ -21,7 +21,7 @@ def front():
         db = get_db()
         error = None
         user = db.execute(
-            "SELECT id_passenger, tx_email, tx_password FROM bt_passenger WHERE tx_email = ?", (tx_email,)
+            "SELECT id_passenger, tx_email, tx_password, tx_name FROM bt_passenger WHERE tx_email = ?", (tx_email,)
         ).fetchone()
         print(user)
         if user is None:
@@ -34,13 +34,15 @@ def front():
             session.clear()
             session["passenger_id"] = user["id_passenger"]
             session["passenger_email"] = user["tx_email"]
+            session["username"] = user["tx_name"]
             return redirect(url_for("auth_passengers.menu"))
         flash(error)
     return render_template("passengers/login_passenger.html")
 
 @bp.route("/menu")
 def menu():
-    return render_template("passengers/menu_passenger.html")
+    username = session.get("username", "")
+    return render_template("passengers/menu_passenger.html", username=username)
 
 @bp.route("/category/<category>")
 def category(category):
@@ -61,7 +63,7 @@ def consumption():
             c.id_passenger,
             c.id_product,
             s.tx_subcategory ||' '|| b.tx_product ||' ('||u.tx_unity||')' AS producto,
-            DATE(c.dt_consumption) AS fc,
+            STRFTIME('%Y-%m-%d %H:%M', c.dt_consumption) AS fc,
             c.nu_quantity,
             c.pc_unity,
             c.nu_quantity * c.pc_unity AS pc_total    
@@ -76,9 +78,11 @@ def consumption():
         ORDER BY 4;
         ''', (id_passenger,)
     ).fetchall()
+    total_consumos = sum(row["pc_total"] for row in results) if results else 0
     return render_template(
         "passengers/consumption_passenger.html",
-        results=results
+        results=results,
+        total_consumos=total_consumos
     )
 
 @bp.route("/consumption/results", methods=["POST"])
@@ -114,3 +118,8 @@ def consumption_results():
     # Vuelve a pasar la lista de pasajeros para el select
     passengers = [row["tx_email"] for row in db.execute("SELECT tx_email FROM bt_passenger").fetchall()]
     return render_template("passengers/consumption_passenger.html", passengers=passengers, results=results, selected=passenger_email)
+
+@bp.route("/logout")
+def logout():
+    session.clear()
+    return redirect(url_for("auth_passengers.front"))
