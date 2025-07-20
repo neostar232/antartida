@@ -2,11 +2,19 @@
 {% block title %}Consulta de Consumos{% endblock %}
 {% block content %}
 <div class="flex-col p-4 h-screen">
+  <div class="flex justify-end mb-2">
+    <a href="{{ url_for('auth_passengers.logout') }}" class="bg-red-500 text-white px-1 py-0.5 rounded text-xs hover:bg-red-600">Logout</a>
+  </div>
   <div class="flex items-center mb-4">
     <span class="text-2xl cursor-pointer mr-2" onclick="window.location.href='{{ url_for('auth_passengers.menu') }}'">←</span>
     <h1 class="text-2xl font-bold">Expenses Overview</h1>
   </div>
   <div class="bg-white p-4 rounded-lg shadow">
+    {% if results and results|length > 0 %}
+      <div class="mb-4">
+        <span class="font-bold text-xl">Total: ${{ '%.2f'|format(total_consumos) }}</span>
+      </div>
+    {% endif %}
     <h3 class="text-lg font-semibold mb-2">Your expenses</h3>
     {% if results and results|length > 0 %}
       <div class="space-y-4">
@@ -18,7 +26,7 @@
         {% endfor %}
       </div>
     {% else %}
-      <p>No hay consumos registrados.</p>
+      <p>No expenses registered.</p>
     {% endif %}
   </div>
 </div>

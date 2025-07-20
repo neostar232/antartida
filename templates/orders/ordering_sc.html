@@ -21,7 +21,7 @@ Mantener presionada la tecla 'Ctrl' para seleccionar más de 1 categoría
   {% endwith %}
 </div>
 
-  <form action="{{ url_for('orders.ordering_sp') }}?v=1.1" method="post">
+  <form action="{{ url_for('orders.ordering_sp') }}" method="post">
     <label for="tx_amp">Seleccionar Categoría/s</label>
      <select name="id_cate" size="20" multiple>
       <option value="" style="width: 300px;">Seleccionar categoría</option>

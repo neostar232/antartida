@@ -9,7 +9,10 @@
 #}
 {% set consumption_url = url_for('auth_passengers.consumption') %}
 <div class="flex-col p-4 h-screen">
-  <h1 class="text-2xl font-bold mb-4">Welcome to the Passenger Menu</h1>
+  <div class="flex justify-end mb-2">
+    <a href="{{ url_for('auth_passengers.logout') }}" class="bg-red-500 text-white px-1 py-0.5 rounded text-xs hover:bg-red-600">Logout</a>
+  </div>
+  <h1 class="text-2xl font-bold mb-4">Welcome {{ username }} to the Passenger Menu</h1>
   {#
   <div class="grid grid-cols-2 gap-4 mb-4">
     <div class="card bg-white p-4 rounded-lg shadow cursor-pointer" onclick="window.location.href='{{ bar_url }}'">
