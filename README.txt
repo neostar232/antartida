@@ -279,16 +279,16 @@ VALUES("2024-06-01","11111111111","24","2024-12-31","1","30","1"),
 ("2024-06-01","11111111111","26","2024-12-31","1","6","1");
 
 /* Creación de trigger para registrar cambios de precios - El equivalente para productos está en la base */
-CREATE TRIGGER add_price AFTER INSERT ON bt_prices
+CREATE TRIGGER add_price AFTER INSERT ON bt_costs
 BEGIN
     INSERT INTO logs(dt_log, id_object, type_event)
-    VALUES(datetime('now'), 'bt_prices', 'INSERT');
+    VALUES(datetime('now'), 'bt_costs', 'INSERT');
     UPDATE logs SET id_user =
         (SELECT id_user FROM
             (SELECT
                 MAX(id_price) AS mxm,
                 id_user
-            FROM bt_prices
+            FROM bt_costs
             GROUP BY 2
              )
          )

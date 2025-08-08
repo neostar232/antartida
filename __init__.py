@@ -2,6 +2,7 @@ import os
 from flask import Flask, redirect, url_for, request, session, send_from_directory
 import datetime as dt
 from flask_caching import Cache
+import os
 
 
 def create_app(test_config=None):
@@ -32,7 +33,6 @@ def create_app(test_config=None):
     
     from . import db
     db.init_app(app)
-
 
     from .db import get_db
 
@@ -66,14 +66,12 @@ def create_app(test_config=None):
     @app.route('/favicon.ico')
     def favicon():
         return send_from_directory(app.static_folder, 'favicon.ico', mimetype='static/favicon.ico')
-
-   
+    
     # Aplicando los Blueprints a la app
-    from . import auth, reports, suppliers, stock, config_vs, orders, cron, consumption, passengers, auth_passengers
+    from . import auth, reports, stock, config_vs, orders, cron, consumption, passengers, auth_passengers, print_module, upgrade_cabin
     
     app.register_blueprint(auth.bp)
     app.register_blueprint(reports.bp)
-    app.register_blueprint(suppliers.bp)
     app.register_blueprint(stock.bp)
     app.register_blueprint(config_vs.bp)
     app.register_blueprint(orders.bp)
@@ -81,5 +79,7 @@ def create_app(test_config=None):
     app.register_blueprint(consumption.bp)
     app.register_blueprint(passengers.bp)
     app.register_blueprint(auth_passengers.bp)
+    app.register_blueprint(print_module.bp)
+    app.register_blueprint(upgrade_cabin.bp)
     app.add_url_rule("/", endpoint="index")
     return app

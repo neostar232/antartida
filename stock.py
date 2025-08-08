@@ -269,6 +269,9 @@ def add_product():
         idscate = request.form["id_scate"]
         idunit = request.form["id_unit"]
         prep = request.form["tx_prep"]
+        apl = request.form.get("tx_apl")
+        dtodayfull = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
+        oper = session.get("user_id")
         error = None
         if not nomprod:
             error = "La categoría es dato obligatorio"
@@ -288,8 +291,18 @@ def add_product():
                        (nomprod, idcate, idscate, idunit, prep),
                        )
             db.commit()
-            flash('El producto ha sido dado de alta exitosamente')
-            return redirect(url_for("auth.redirectlink"))
+
+            if apl:
+                req_prd = db.execute('SELECT MAX(id_product) AS mxm FROM bt_product;').fetchone()[0]
+                db.execute("INSERT INTO bt_product_prices (id_product, dt_from, id_user, flag_price) VALUES (?,?,?,?)",
+                   (req_prd, dtodayfull, oper, '1'),
+                   )
+                db.commit()
+                flash('El producto ha sido dado de alta exitosamente. El precio actual es 0, recuerde actualizarlo','warning')
+                return redirect(url_for("auth.redirectlink"))
+            else:
+                flash('El producto ha sido dado de alta exitosamente')
+                return redirect(url_for("auth.redirectlink"))
     return render_template("stock/add_product.html")
 
 

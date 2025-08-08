@@ -15,7 +15,7 @@ CATEGORIES = {
 @bp.route("/auth", methods=["GET", "POST"])
 def front():
     if request.method == "POST":
-        tx_email = request.form["tx_email"]
+        tx_email = request.form["tx_email"].lower()
         password = request.form["password"]
         print(tx_email, password)
         db = get_db()
@@ -27,7 +27,7 @@ def front():
         if user is None:
             error = "Invalid user."
         #elif not check_password_hash(user["tx_password"], password):
-        elif not user["tx_password"] == password.strip():
+        elif not user["tx_password"].upper() == password.strip().upper():
             print("Password error ---- ", user["tx_password"],"---", password)
             error = "Incorrect password."
         if error is None:

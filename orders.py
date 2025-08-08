@@ -9,7 +9,7 @@ import pandas as pd
 
 bp = Blueprint("orders", __name__)
 
-# Traigo ultima instancia de orden, a fin de otorgar uan numeracion temporal
+# Traigo ultima instancia de orden, a fin de otorgar una numeracion temporal
 query_num_ord = """SELECT IFNULL(MAX(id_order), 0) + 1 AS mxm FROM bt_order_header;"""
 
 

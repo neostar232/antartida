@@ -114,6 +114,7 @@ def login():
         flash(error)
     return render_template("auth/login.html")
 
+
 # De acuerdo al rol definido para el usuario, lo envio al panel al que debe acceder
 @bp.route("/redirectlink")
 def redirectlink():

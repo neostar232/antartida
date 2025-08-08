@@ -220,7 +220,8 @@ def prodstrf():
 
 
 # Listado de productos del punto de venta
-query_prods_sp = """SELECT
+query_prods_sp = """
+                SELECT
                     p.id_product,
                     s.tx_subcategory ||' - '|| b.tx_product ||' x '|| u.tx_unity AS desc_product,
                     p.nu_price_usd
@@ -233,7 +234,18 @@ query_prods_sp = """SELECT
                 INNER JOIN lkp_units u
                 ON b.id_unity = u.id_unity
                 WHERE p.dt_to = '2100-12-31'
-                AND b.flag_ctrl = 1
+                AND p.flag_price = 1
+                
+                UNION
+
+                SELECT
+                    p.id_product,
+                    'Tragos'||' - '|| d.tx_drink AS desc_product,
+                    p.nu_price_usd
+                FROM bt_product_prices p INNER JOIN lkp_drinks d
+                ON p.id_product = d.id_drink
+                WHERE p.dt_to = '2100-12-31'
+                AND p.flag_price = 1
                 ORDER BY 2;
                 """
 
@@ -243,15 +255,47 @@ query_plist = """
                 p.id_product,
                 s.tx_subcategory||' - '|| p.tx_product ||' ('||u.tx_unity||')' AS producto,
                 pp.nu_price_usd
-            FROM bt_product_prices pp INNER JOIN bt_product p
+            FROM bt_product_prices pp LEFT JOIN bt_product p
             ON pp.id_product = p.id_product
-            INNER JOIN lkp_subcategories s
+            LEFT JOIN lkp_subcategories s
             ON p.id_subcategory = s.id_subcategory
-            INNER JOIN lkp_units u
+            LEFT JOIN lkp_units u
             ON p.id_unity = u.id_unity
             WHERE DATE(pp.dt_to) > CURRENT_DATE
-            AND p.flag_ctrl = 1
+            AND pp.flag_price = 1
             ORDER BY 2;
+            """
+
+# Listado de ventas por viaje (abierto)
+query_sales_actual = """
+            SELECT
+                id_passenger,
+                nu_cabin,
+                tx_name||', '||tx_surname AS nm_psgr,
+                SUM(nu_totbuys) AS total
+            FROM
+            (
+            SELECT
+                lc.nu_cabin,
+                ps.id_passenger,
+                ps.tx_name,
+                ps.tx_surname,
+                bc.nu_quantity * bc.pc_unity AS nu_totbuys
+            FROM bt_passenger ps INNER JOIN bt_cabin_occupation co
+            ON (
+                ps.id_passenger = co.id_passenger
+                AND ps.id_cabin = co.id_cabin
+                AND ps.id_campaign = co.id_campaign
+                )
+            INNER JOIN lkp_cabins lc
+            ON co.id_cabin = lc.id_cabin
+            INNER JOIN bt_consumption bc
+            ON ps.id_passenger = bc.id_passenger
+            INNER JOIN lkp_campaign lm
+            ON ps.id_campaign = lm.id_campaign
+            WHERE lm.flag_vigency = 1
+            ) a
+            GROUP BY 1, 2, 3;
             """
 
 # Productos del punto de venta
@@ -259,15 +303,18 @@ query_plist = """
 @login_required
 def prods_sp():
     db = get_db()
-    prpv = db.execute(query_prods_sp).fetchall()
+    prpv = db.execute(query_prods_sp).fetchall()    
     return render_template("reports/prods_sp.html", prpv = prpv)
     
 
-
-@bp.route("/list")
+@bp.route("/sales_actual")
 @login_required
-def list():
-    return render_template("reports/list.html")
+def sales_actual():
+    db = get_db()
+    acsales = db.execute(query_sales_actual).fetchall()
+    total_sales_act = sum(item['total'] for item in acsales) if acsales else 0
+    return render_template("reports/sales_actual.html", acsales = acsales, total_sales_act = total_sales_act)
+
 
 # Funciones de exportacion de listados
 @bp.route("/export_list")
@@ -385,11 +432,3 @@ def export_list_sp():
         response.headers["Content-Type"] = "application/vnd.ms-excel"
         return response
     
-
-# Generacion de la lista de precios
-@bp.route("/bar_sp/price_list")
-@login_required
-def price_list():
-    db = get_db()
-    plist = db.execute(query_plist).fetchall()
-    return render_template("bar_sp/price_list.html", plist=plist)

@@ -54,7 +54,8 @@ query_prods = query_prods_full + " AND b.flag_ctrl = 1 ORDER BY 2"
 query_prods_ordered = query_prods_full + " ORDER BY 2"
 
 # Productos del punto de venta
-query_prods_sp = """SELECT
+query_prods_sp = """
+                SELECT
                     p.id_product,
                     s.tx_subcategory ||' - '|| b.tx_product ||' x '|| u.tx_unity AS desc_product
                 FROM bt_product_prices p INNER JOIN bt_product b
@@ -66,7 +67,17 @@ query_prods_sp = """SELECT
                 INNER JOIN lkp_units u
                 ON b.id_unity = u.id_unity
                 WHERE p.dt_to = '2100-12-31'
-                AND b.flag_ctrl = 1
+                AND p.flag_price = 1
+
+                UNION
+
+                SELECT
+                    p.id_product,
+                    'Tragos'||' - '|| d.tx_drink AS desc_product
+                FROM bt_product_prices p INNER JOIN lkp_drinks d
+                ON p.id_product = d.id_drink
+                WHERE p.dt_to = '2100-12-31'
+                AND p.flag_price = 1
                 ORDER BY 2;
                 """
 
@@ -299,10 +310,10 @@ def add_price():
             flash(error)
         else:
             db = get_db()
-            db.execute("UPDATE bt_prices SET dt_to = ? WHERE id_product = ? AND dt_to = '2100-12-31'",
+            db.execute("UPDATE bt_costs SET dt_to = ? WHERE id_product = ? AND dt_to = '2100-12-31'",
                        (dtoday, idpr)
                       )
-            db.execute("INSERT INTO bt_prices (id_product, num_pesos, dt_from, id_user) VALUES (?,?,?,?)",
+            db.execute("INSERT INTO bt_costs (id_product, num_pesos, dt_from, id_user) VALUES (?,?,?,?)",
                         (idpr, prpe, dtoday, oper),
                         )
             db.commit()
