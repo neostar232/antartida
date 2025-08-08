@@ -313,3 +313,8 @@ nav.navbar li a:hover {
   color: red; /* Text color turns red on hover */
 }
 
+.contenedor-flex {
+  display: flex;
+  align-items: baseline; /* Esto alinea verticalmente los elementos */
+  gap: 10px; /* Esto añade un espacio entre los elementos */
+}
