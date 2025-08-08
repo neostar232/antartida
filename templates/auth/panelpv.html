@@ -15,37 +15,49 @@
     <div class="grid-iteml">
       <img src="/static/drinks.png" alt="Bar">
       <br>
-      <b>Bar</b><br>      
+      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=1) }}">Bar</a></b><br>      
     </div>
 
     <div class="grid-iteml">
       <img src="/static/internet.png" alt="Internet">
       <br>
-      <b><a class="action" href="{{ url_for('consumption.prods_inet') }}">Internet</a></b><br>
+      <b><a class="action" href="{{ url_for('consumption.prods_services', id_scat=93) }}">Internet</a></b><br>
     </div>
     
     <div class="grid-iteml">
       <img src="/static/clothes.png" alt="Clothes">
       <br>
-      <b><a class="action" href="{{ url_for('consumption.clothes') }}">Ropa y Accesorios</a></b><br>
+      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=10) }}">Ropa y Accesorios</a></b><br>
     </div>
 
     <div class="grid-iteml">
       <img src="/static/merchan.png" alt="Merchandising">
       <br>
-      <b>Merchandising</b><br>
+      <b><a class="action" href="{{ url_for('consumption.prods_services', id_scat=[46, 47]) }}">Merchandising</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/laundry.png" alt="Lavandería">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.prods_services', id_scat=97) }}">Servicio de lavandería</a></b><br>
     </div>
 
     <div class="grid-itemf">
       <img src="/static/consumption.png" alt="Consumos">
       <br>
-      <b><a class="action" href="{{ url_for('consumption.consumption_passenger') }}">Consulta de consumos por Pasajero</a></b><br>
+      <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=1) }}">Consulta de consumos por Pasajero / EECC</a></b><br>
     </div>
 
     <div class="grid-itemf">
       <img src="/static/impresora.png" alt="Impresiones">
       <br>
-      <b>Reimpresión de Tickets y EECC</b><br>
+      <b>Reimpresión de Tickets</b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/padlock.png" alt="Psw">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=2) }}">Recupero datos usuario</a></b><br>
     </div>
 
 
@@ -58,6 +70,3 @@
   <br>
   -->
 {% endblock %}
-
-
-  <br>

@@ -5,7 +5,7 @@
 {% if message %}
     <p>{{ message }}</p>
 {% else %}
-    <form id="order-processing-form" action="{{ url_for('consumption.process_clothes_order') }}" method="post" >
+    <form id="order-processing-form" action="{{ url_for('consumption.process_order') }}" method="post" >
          <input type="hidden" name="passenger_id" value="{{ passenger_id }}">
         {% if order_items %}
             <table class="table table-striped">

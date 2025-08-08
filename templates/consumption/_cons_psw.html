@@ -1,0 +1,20 @@
+{# templates/consumption/_cons_psw.html #}
+{% if get_psw %}
+    <h3>Credenciales</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Contraseña</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ get_psw.tx_email }}</td>
+                <td>{{ get_psw.tx_password }}</td>
+            </tr>
+        </tbody>
+    </table>
+{% else %}
+    <p>Este pasajero no tiene consumos registrados.</p>
+{% endif %}

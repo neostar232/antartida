@@ -1,0 +1,127 @@
+
+{% extends "base_r.html" %}
+
+{% block header %}
+  <h1>{% block title %}Upgrade de Cabina{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="id_passenger">Pasajero:</label>
+    <select name="id_passenger" id="id_passenger" required onchange="updateCabinas()">
+      <option value="">Seleccionar pasajero</option>
+      {% for p in passengers %}
+        <option value="{{p.id_passenger}}">{{p.name}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    
+    <label for="cabina_actual">Cabina actual:</label>
+    <select name="cabina_actual" id="cabina_actual" required readonly>
+      <option value="">Seleccionar cabina</option>
+    </select>
+    <br>
+    
+    <label for="cabina_upgrade">Cabina del upgrade:</label>
+    <select name="cabina_upgrade" id="cabina_upgrade" required onchange="updatePrecio()">
+      <option value="">Seleccionar cabina</option>
+      <!-- Las opciones se llenan dinámicamente, pero los nombres deben coincidir con los del backend -->
+    </select>
+    <br>
+
+    <label for="tipo_upgrade">Tipo de upgrade:</label>
+    <select name="tipo_upgrade" id="tipo_upgrade" required onchange="document.getElementById('precio').disabled = (this.value == 'critico'); document.getElementById('precio').value = (this.value == 'critico' ? 0 : '');">
+      <option value="normal">Normal</option>
+      <option value="critico">Crítico</option>
+    </select>
+    <br>
+
+    <label for="precio">Precio:</label>
+    <input type="number" name="precio" id="precio" min="0" required>
+    <br>
+
+    <label for="fecha_upgrade">Fecha del upgrade:</label>
+    <input type="date" name="fecha_upgrade" required>
+    <br><br>
+
+    <input type="submit" value="Registrar Upgrade">
+  </form>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+  <script>
+    function updateCabinas() {
+        var id_passenger = document.getElementById('id_passenger').value;
+        if (!id_passenger) return;
+        fetch("{{ url_for('upgrade_cabin.get_cabina_info') }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: "id_passenger=" + id_passenger
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Actualizar cabina actual
+            let cabinaActual = document.getElementById('cabina_actual');
+            cabinaActual.innerHTML = "";
+            if (data.cabina_actual_id) {
+                let opt = document.createElement('option');
+                opt.value = data.cabina_actual_id;
+                opt.text = data.cabina_actual_name ? data.cabina_actual_name : data.cabina_actual_id;
+                cabinaActual.appendChild(opt);
+                tipoCabinaActual = data.cabina_actual_type;
+            } else {
+                tipoCabinaActual = null;
+            }
+    
+            // Actualizar cabinas libres
+            let cabinaUpgrade = document.getElementById('cabina_upgrade');
+            cabinaUpgrade.innerHTML = '<option value="">Seleccionar cabina</option>';
+            data.cabinas_libres.forEach(function(cab) {
+                let opt = document.createElement('option');
+                opt.value = cab.id;
+                opt.text = cab.cabin;
+                cabinaUpgrade.appendChild(opt);
+            });
+        });
+    }
+
+    // Mapeo explícito de tipos de cabina para el cálculo de precio
+    const tiposCabinaValidos = [
+        "Standard Twin",
+        "Standard Plus Twin",
+        "Standard Plus Triple",
+        "Superior Twin",
+        "Premier Single",
+        "Premier Twin",
+        "Suite Twin"
+    ];
+
+    function updatePrecio() {
+        let cabinaUpgradeSelect = document.getElementById('cabina_upgrade');
+        // texto de la opción seleccionada:
+        let textoSeleccionado = cabinaUpgradeSelect.options[cabinaUpgradeSelect.selectedIndex].text;
+        // Buscar el tipo de cabina válido más cercano en el texto
+        let cabinUpgradeSelectedType = tiposCabinaValidos.find(tipo => textoSeleccionado.includes(tipo));
+        if (!cabinUpgradeSelectedType) {
+            // fallback: usar el texto completo
+            cabinUpgradeSelectedType = textoSeleccionado.trim();
+        }
+        console.log("cabinUpgradeSelectedType:", cabinUpgradeSelectedType);
+
+        let id_cabin_upgrade = document.getElementById('cabina_upgrade').value;
+        console.log(id_cabin_upgrade);
+        if (!tipoCabinaActual || !cabinaUpgradeSelect.value) return;
+        //console.log(tiposCabinaLibres);
+        
+        //let tipoCabinaUpgrade = tiposCabinaLibres[id_cabin_upgrade];
+        fetch("{{ url_for('upgrade_cabin.get_cabin_price_diff') }}", {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: "tipo_cabina_actual=" + encodeURIComponent(tipoCabinaActual) + "&tipo_cabina_upgrade=" + encodeURIComponent(cabinUpgradeSelectedType)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('precio').value = data.precio;
+        });
+    }
+    </script>
+{% endblock %} 

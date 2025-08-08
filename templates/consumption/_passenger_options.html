@@ -3,7 +3,8 @@
         hx-get="{{ url_for('consumption.get_products_htmx') }}"
         hx-trigger="change"
         hx-target="#product-container"
-        hx-swap="innerHTML">
+        hx-swap="innerHTML"
+        hx-vals='js:{"id_cat": document.getElementById("hidden_id_category").value}'>
     <option value="">Seleccionar Pasajero</option>
     {% for pasng in passengers %}
         <option value="{{ pasng.id_passenger }}">{{ pasng.passenger_name }}</option>
@@ -11,6 +12,7 @@
         <option value="" disabled>No hay pasajeros en esta cabina</option>
     {% endfor %}
 </select>
+<input type="hidden" id="hidden_id_category" value="{{ id_category }}">
 
 {% if show_quantity %}
     <input id="cantidad" name="qtty" value="" required style="width: 100px;">

@@ -1,0 +1,42 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Impresión de Ticket de Compra{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <h1 class="text-2xl font-bold text-center mb-4">Ticket de Compra Listo para Imprimir</h1>
+    <p class="text-center text-gray-700 mb-6">Selecciona una opción para generar el ticket de la operación Nro. <span class="font-semibold">{{ ticket_id }}</span>.</p>
+    
+    <div class="flex justify-center flex-col md:flex-row gap-4 mb-6">
+        <button id="printPdfButton"
+           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+            Generar e Imprimir Ticket (PDF)
+        </button>
+        
+        <a href="{{ url_for('print_module.generate_ticket_txt', ticket_id=ticket_id) }}" 
+           class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center">
+            Descargar como Archivo TXT
+        </a>
+    </div>
+    
+    <script>
+        document.getElementById('printPdfButton').addEventListener('click', function() {
+            // Se construye la URL de la ruta que genera el PDF
+            var pdfUrl = "{{ url_for('print_module.generate_ticket_pdf', ticket_id=ticket_id) }}";
+            // Abre la URL del PDF en una nueva ventana/pestaña
+            var printWindow = window.open(pdfUrl, '_blank');
+            // Espero a que la nueva ventana se cargue completamente
+            printWindow.onload = function() {
+                // Activa diálogo de impresión
+                printWindow.print();
+            };
+        });
+    </script>
+
+<br>
+<div class="text-center mt-8">
+    <a href="{{ url_for('auth.redirectlink') }}" class="text-blue-600 hover:underline">Volver al Inicio</a>
+</div>
+
+{% endblock %}

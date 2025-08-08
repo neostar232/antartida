@@ -4,8 +4,9 @@
     <table>
         <thead>
             <tr>
-                <th>Producto</th>
+                <th>Ticket</th>
                 <th>Fecha</th>
+                <th>Producto</th>
                 <th>Cantidad</th>
                 <th>Precio Unitario</th>
                 <th>Total</th>
@@ -14,14 +15,21 @@
         <tbody>
             {% for item in get_cons %}
             <tr>
-                <td>{{ item.producto }}</td>
+                <td>{{ item.id_ticket }}</td>
                 <td>{{ item.fc }}</td>
+                <td>{{ item.producto }}</td>
                 <td>{{ item.nu_quantity }}</td>
                 <td>{{ "%.2f"|format(item.pc_unity) }}</td>
                 <td>{{ "%.2f"|format(item.pc_total) }}</td>
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" style="text-align: right;"><strong>Total General:</strong></td>
+                <td><strong>{{ "%.2f"|format(total_general) }}</strong></td>
+            </tr>
+        </tfoot>
     </table>
 {% else %}
     <p>Este pasajero no tiene consumos registrados.</p>

@@ -1,0 +1,25 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Deshabilitación de Recorrido{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <br>
+  <form method="post" action="{{ url_for('passengers.disable_trip') }}">
+    <label for="tx_et">Seleccione Recorrido a deshabilitar</label>
+    <select name="id_trp">
+      <option value="" style="width: 200px;">Seleccionar recorrido</option>
+      {% for trip in entrips %}
+        <option name="id_trp" value="{{trip.id_campaign}}" style="width: 200px;">{{trip.itinerary}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Actualizar Recorrido">
+  </form>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

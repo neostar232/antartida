@@ -1,7 +1,7 @@
 {% extends 'base_r.html' %}
 
 {% block header %}
-  <h1>{% block title %}Consulta de Consumos por pasajero{% endblock %}</h1>
+  <h1>{% block title %}Obtener credenciales por pasajero{% endblock %}</h1>
   {% if g.user %}
   
   {% endif %}
@@ -13,7 +13,7 @@
         <label for="cabpass">Seleccionar Cabina/Pasajero:</label>
         <select id="id_pass"
                 name="id_pass"
-                hx-get="{{ url_for('consumption.get_consumptions_htmx') }}"
+                hx-get="{{ url_for('consumption.get_psw_htmx') }}"
                 hx-trigger="change"
                 hx-target="#consumption_passenger-container"
                 hx-swap="innerHTML">
@@ -25,9 +25,9 @@
 
         <hr>
 
-        <h2>Consumos del Pasajero Seleccionado</h2>
+        <h2>Credenciales del Pasajero Seleccionado</h2>
         <div id="consumption_passenger-container">
-            <p>Selecciona un pasajero para ver sus consumos aquí.</p>
+            <p>Selecciona un pasajero para ver datos de acceso.</p>
         </div>
     </form>
     

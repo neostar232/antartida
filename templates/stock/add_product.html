@@ -39,8 +39,13 @@
         {% endif %}
       {% endfor %}
     </select>
-    <label for="tx_prep">Punto de repedido</label>
-    <input name="tx_prep" id="tx_prep" required style="width: 200px;" type="number">
+    <br>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <label for="tx_prep">Punto de repedido</label>
+      <input name="tx_prep" id="tx_prep" required style="width: 200px;" type="number">
+      <label for="tx_apl">Agrega a lista de precios?</label>
+      <input type="checkbox" name="tx_apl" value="1">
+    </div>
     <br>
     <input type="submit" value="Alta de Producto">
   </form>

@@ -8,6 +8,7 @@
   <script type="text/javascript" src="{{ url_for('static', filename='js/ot.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/ps.js') }}"></script>
   <script type="text/javascript" src="{{ url_for('static', filename='js/pop.js') }}"></script>
+  <meta name="htmx-config" content='{"historyCacheSize": 0}'>
   <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>  
 <nav>
   <h1><a href="{{ url_for('auth.redirectlink') }}">Gestión Buque Ushuaia</a></h1>
@@ -39,8 +40,8 @@
   <header>
     {% block header %}{% endblock %}
   </header>
-  {% for message in get_flashed_messages() %}
-    <div class="flash">{{ message }}</div>
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
   {% endfor %}
   {% block content %}{% endblock %}
 </section>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Recibo #{{ ticket.id_ticket }}</title>
+    <style>
+        /* Estilos generales para la impresión en un recibo */
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 8.5px;
+            width: 58mm; /* El ancho del cuerpo debe ser el de la impresora */
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            line-height: 1.1;
+            /* El margen negativo es para compensar los márgenes por defecto del navegador */
+            margin-left: -2mm; 
+        }
+        .container {
+            /* Uso un contenedor con un ancho exacto para forzar el tamaño */
+            width: 58mm;
+            padding: 1.5mm; /* Padding para que el contenido tenga un espacio */
+            box-sizing: border-box; /* Aseguro que el padding no añada ancho extra */
+        }
+        .header, .footer {
+            text-align: center;
+            margin-bottom: 2mm;
+        }
+        .line-separator {
+            border-bottom: 1px dashed black;
+            margin: 1.5mm 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2mm;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.3mm 0;
+            vertical-align: top;
+        }
+        .right-align {
+            text-align: right;
+        }
+        .center-align {
+            text-align: center;
+        }
+        .total {
+            font-size: 1em;
+            font-weight: bold;
+        }
+        /* Ajuste de anchos de columna para 58mm */
+        .item-qty {
+            width: 15%;
+        }
+        .item-description {
+            width: 45%;
+        }
+        .item-price {
+            width: 20%;
+        }
+        .item-total {
+            width: 20%;
+        }
+        /* Regla para la página de impresión */
+        @page {
+            size: 58mm auto;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h3>BUQUE USHUAIA</h3>
+            <p>Muelle 23, Ushuaia</p>
+            <p>Tel: (123) 456-7890</p>
+            <p>RUC/CUIT: XXXXXXXXX</p>
+        </div>
+            <div class="line-separator"></div>
+            <p><strong>RECIBO #:</strong> {{ ticket.id_ticket }}</p>
+            <p><strong>FECHA:</strong> {{ ticket.dt_ticket }}</p>
+            <p><strong>PASAJERO:</strong> {{ passenger_name }}</p>
+        <div class="line-separator"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th class="item-qty">Cant.</th>
+                    <th class="item-description">Descripción</th>
+                    <th class="item-price right-align">P. Unit.</th>
+                    <th class="item-total right-align">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set grand_total = 0 %}
+                {% for item in items %}
+                <tr>
+                    <td class="item-qty">{{ item.quantity }}</td>
+                    <td class="item-description">{{ item.product }}</td>
+                    <td class="item-price right-align">${{ "%.2f"|format(item.unit_price) }}</td>
+                    <td class="item-total right-align">${{ "%.2f"|format(item.quantity * item.unit_price) }}</td>
+                </tr>
+                {% set grand_total = grand_total + (item.quantity * item.unit_price) %}
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="line-separator"></div>
+        <p class="total right-align">TOTAL: ${{ "%.2f"|format(grand_total) }}</p>
+        <div class="line-separator"></div>
+        <div class="footer">
+            <p>¡Gracias por tu compra!</p>
+        </div>
+    </div>
+</body>
+</html>

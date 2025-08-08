@@ -1,7 +1,7 @@
 {% extends 'base_r.html' %}
 
 {% block header %}
-  <h1>{% block title %}Servicio de Internet{% endblock %}</h1>
+  <h1>{% block title %}Prods. & Servs. de Merchandising{% endblock %}</h1>
   {% if g.user %}
   
   {% endif %}
@@ -9,9 +9,9 @@
 
 {% block content %}
   <form action="{{ url_for('consumption.enter_shop') }}" method="post">
-    <label for="planes">Planes de Internet disponibles:</label>
+    <label for="planes">Productos y Servicios:</label>
     <select name="id_iplan">
-      <option value="" style="width: 200px;">Seleccionar plan</option>
+      <option value="" style="width: 200px;">Seleccionar de la lista</option>
       {% for plan in srvc %}
         <option name="id_iplan" value="{{ plan.id_product,plan.nu_price_usd }}" style="width: 200px;">{{plan.producto}}</option>
       {% endfor %}
@@ -32,7 +32,7 @@
     </select>
     <br>
 
-    <label for="passenger">Pasajero:</label>
+    <label for="passenger">Pasajero y cantidad:</label>
     <div id="passenger-container">
         <select id="passenger" name="passenger" disabled>
             <option name="passenger" value="">Seleccionar Pasajero</option>
@@ -58,7 +58,7 @@
             });
         </script>
     <br><br>
-    <input type="submit" value="Confirmar selección y asignar plan">
+    <input type="submit" value="Confirmar selección y asignar Merchan">
   </form>
 
   
