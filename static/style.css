@@ -1,6 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Abel&family=Dosis:wght@200..800&display=swap');
 
 
+/* Styles for larger screens (desktops) */
+.container {
+  width: 960px;
+  margin: 0 auto;
+}
+
+/* Styles for smaller screens (mobiles) */
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    padding: 15px;
+  }
+/* Further adjustments for mobile layout */
+}
+
+
 html {
 font-family: Dosis;
 background: #eee;
