@@ -1,0 +1,51 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Cancelación de Cargos{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<form method="post" action="{{ url_for('consumption.anull_ax_process') }}">
+     <label>Detalle del cargo a cancelar:</label>
+    <table width="65%">
+        <thead>
+            <tr>
+                <th>Ticket</th>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% if ancons %}
+                <td>{{ancons.id_ticket}}</td>
+                <td>{{ancons.fc}}</td>
+                <td>{{ancons.producto}}</td>
+                <td>{{ancons.nu_quantity}}</td>
+                <td>{{ancons.pc_unity}}</td>
+                <td>{{ancons.total}}</td>
+                {% endif %}
+            </tr>
+        </tbody>
+    </table>
+    <br>
+    <input type=hidden name="id_cons" value="{{ancons.id_consumption}}">
+    <div class="contenedor-flex">
+        <label for="tx_reason">Indicar motivo:</label>
+        <input name="tx_reason" id="tx_reason" type="text" maxlength="30" required style="width: 200px;"> *
+    </div>
+    <font size="2">* Máximo 30 caracteres</font>
+    <br>
+    <br>
+    <input type="submit" value="Cancelar Cargo">
+</form>
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

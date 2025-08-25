@@ -1,0 +1,62 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Cierre de los cargos del Pasajero{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<form method="post" action="{{ url_for('consumption.close_account_process') }}">
+     <label>Resumen de los tickets generados:</label>
+    <table width="45%">
+        <thead>
+            <tr>
+                <th>Ticket</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                {% for det in consumptions %}
+                <input type=hidden name="id_psgr" value="{{det.id_passenger}}">
+                <td>{{det.id_ticket}}</td>
+                <td>{{det.fc}}</td>
+                <td>{{det.status}}</td>
+                <td>{{"%.2f"|format(det.total)}}</td>
+            </tr>
+            {% if not loop.last %}
+                {% endif %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" style="text-align: right;"><strong>Total a Pagar/Cancelar:</strong></td>
+                <td><strong>{{ "%.2f"|format(total_general) }}</strong></td>
+            </tr>
+        </tfoot>
+    </table>
+    <br>
+    
+    <div class="contenedor-flex">
+        <label for="tx_reason">Seleccionar medio de pago:</label>
+        <select name="id_pm">
+      <option value="" style="width: 200px;">Medios de pago</option>
+      {% for pms in pm %}
+        <option name="id_pm" value="{{pms.id_pay_method}}" style="width: 200px;" required>{{pms.tx_pay_method}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    </div>
+
+    <br>
+    <input type="submit" value="Cerrar cuenta">
+</form>
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

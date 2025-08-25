@@ -23,9 +23,7 @@
                            id="product-{{ prd.id_product }}">
                 </td>
                 <td style="padding: 8px; border-bottom: 1px solid #ddd;">
-                    <label for="product-{{ prd.id_product }}">
-                        {{ prd.producto }}
-                    </label>
+                    <label for="product-{{ prd.id_product }}">{{ prd.producto }}</label>
                 </td>
                 <td style="padding: 8px; border-bottom: 1px solid #ddd;">${{ "%.2f"|format(prd.nu_price_usd) }}</td>
                 <td style="padding: 8px; border-bottom: 1px solid #ddd;">

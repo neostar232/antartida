@@ -33,7 +33,7 @@
     <div class="grid-iteml">
       <img src="/static/merchan.png" alt="Merchandising">
       <br>
-      <b><a class="action" href="{{ url_for('consumption.prods_services', id_scat=[46, 47]) }}">Merchandising</a></b><br>
+      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=14) }}">Merchandising</a></b><br>
     </div>
 
     <div class="grid-itemf">
@@ -43,9 +43,15 @@
     </div>
 
     <div class="grid-itemf">
+      <img src="/static/cama-individual.png" alt="Upgrade de Cabina" style="width:32px; height:auto;">
+      <br>
+      <b><a class="action" href="{{ url_for('upgrade_cabin.upgrade_cabin') }}">Upgrade de Cabina</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
       <img src="/static/consumption.png" alt="Consumos">
       <br>
-      <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=1) }}">Consulta de consumos por Pasajero / EECC</a></b><br>
+      <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=1) }}">Estado de Cuenta / Consumos</a></b><br>
     </div>
 
     <div class="grid-itemf">
@@ -59,6 +65,8 @@
       <br>
       <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=2) }}">Recupero datos usuario</a></b><br>
     </div>
+
+    
 
 
   </div>

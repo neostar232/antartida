@@ -4,7 +4,7 @@
         hx-trigger="change"
         hx-target="#product-container"
         hx-swap="innerHTML"
-        hx-vals='js:{"id_cat": document.getElementById("hidden_id_category").value}'>
+        hx-vals='{"id_cat": "{{ id_category }}", "tbn": "{{ tbn }}"}'>
     <option value="">Seleccionar Pasajero</option>
     {% for pasng in passengers %}
         <option value="{{ pasng.id_passenger }}">{{ pasng.passenger_name }}</option>

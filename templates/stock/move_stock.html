@@ -31,6 +31,7 @@
         {% for prod in aptt %}
         <tr>
             <input type="hidden" name="idprodh" value="{{prod.id_product}}">
+            <!-- <input type="hidden" name="id_whf" value="{{prod.id_warehouse}}"> -->
             <td name="tx_prodv" style="width: 250px;">{{prod.producto}}</td>
             <td name="wh_source" style="width: 80px;">{{prod.tx_warehouse}}</td>
             <td name="q_avai" style="width: 80px;">{{prod.q_batch_balance}}</td>
@@ -41,6 +42,7 @@
             </td>
             <td>
             <select name="id_wh">
+              <!-- <option value="" style="width: 100px;">Almacén Destino</option> -->
               <option value="" style="width: 100px;">Almacén Destino</option>
               {% for wh in whs %}
                 <option value="{{wh.id_warehouse}}">{{wh.tx_warehouse}}</option>

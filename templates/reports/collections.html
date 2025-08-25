@@ -1,0 +1,56 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Listado de Cobranzas Efectuadas{% endblock %}</h1>
+  {% if g.user %}
+    
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+    
+</header>
+<br>
+    <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
+      <thead>
+        <tr align="center">
+          <th scope="col">Viaje</th>
+          <th scope="col">Pasajero</th>
+          <th scope="col">Cant. Tickets</th>
+          <th scope="col">Fecha de Pago</th>
+          <th scope="col">Medio de Pago</th>
+          <th scope="col">Monto Cobrado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dcoll in coll %}      
+          <tr>
+            <td>{{dcoll.id_trip}}</td>
+            <td>{{dcoll.nya}}</td>
+            <td>{{dcoll.q_ticket}}</td>
+            <td>{{dcoll.dt_payment}}</td>
+            <td>{{dcoll.tx_pay_method}}</td>
+            <td>{{"%.2f"|format(dcoll.total)}}</td>
+          </tr>
+        {% if not loop.last %}
+        {% endif %}
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="5" style="text-align: right;"><strong>Total General:</strong></td>
+          <td><strong>{{ "%.2f"|format(total_clt) }}</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+    
+<br>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

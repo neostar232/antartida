@@ -9,7 +9,11 @@
 
 {% block content %}
 
-    <form>
+    <form hx-trigger="submit"
+    hx-target="#order-summary-container"
+    hx-post="{{ url_for('consumption.process_product_selection') }}"
+    hx-swap="innerHTML">
+        <input type="hidden" name="tbn" value="{{ tbn }}">
         <label for="cabin">Cabina:</label>
         <select id="cabin" name="cabin"
                 hx-post="{{ url_for('consumption.get_passengers_htmx') }}"

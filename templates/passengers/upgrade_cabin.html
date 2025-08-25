@@ -21,18 +21,18 @@
       <option value="">Seleccionar cabina</option>
     </select>
     <br>
-    
-    <label for="cabina_upgrade">Cabina del upgrade:</label>
-    <select name="cabina_upgrade" id="cabina_upgrade" required onchange="updatePrecio()">
-      <option value="">Seleccionar cabina</option>
-      <!-- Las opciones se llenan dinámicamente, pero los nombres deben coincidir con los del backend -->
-    </select>
-    <br>
 
     <label for="tipo_upgrade">Tipo de upgrade:</label>
     <select name="tipo_upgrade" id="tipo_upgrade" required onchange="document.getElementById('precio').disabled = (this.value == 'critico'); document.getElementById('precio').value = (this.value == 'critico' ? 0 : '');">
       <option value="normal">Normal</option>
       <option value="critico">Crítico</option>
+    </select>
+    <br>
+    
+    <label for="cabina_upgrade">Cabina del upgrade:</label>
+    <select name="cabina_upgrade" id="cabina_upgrade" required onchange="updatePrecio()">
+      <option value="">Seleccionar cabina</option>
+      <!-- Las opciones se llenan dinámicamente, pero los nombres deben coincidir con los del backend -->
     </select>
     <br>
 
@@ -55,10 +55,11 @@
         fetch("{{ url_for('upgrade_cabin.get_cabina_info') }}", {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: "id_passenger=" + id_passenger
+            body: "id_passenger=" + id_passenger + "&tipo_upgrade=" + document.getElementById('tipo_upgrade').value
         })
         .then(response => response.json())
         .then(data => {
+            console.log("data: ", data);
             // Actualizar cabina actual
             let cabinaActual = document.getElementById('cabina_actual');
             cabinaActual.innerHTML = "";
@@ -95,6 +96,13 @@
         "Suite Twin"
     ];
 
+    document.getElementById('tipo_upgrade').addEventListener('change', function() {
+        document.getElementById('precio').disabled = (this.value == 'critico');
+        document.getElementById('precio').value = (this.value == 'critico' ? 0 : '');
+        console.log("actualizando cabinas");
+        updateCabinas();
+    });
+
     function updatePrecio() {
         let cabinaUpgradeSelect = document.getElementById('cabina_upgrade');
         // texto de la opción seleccionada:
@@ -124,4 +132,4 @@
         });
     }
     </script>
-{% endblock %} 
+{% endblock %}

@@ -5,7 +5,7 @@
 {% endif %}
 
 {% block header %}
-  <h1>{% block title %}Listado de Ventas - Recorrido Actual{% endblock %}</h1>
+  <h1>{% block title %}Listado de Ventas Canceladas - Recorrido Actual{% endblock %}</h1>
   {% if g.user %}
     
   {% endif %}
@@ -23,6 +23,7 @@
           <th scope="col">Pasajero</th>
           <th scope="col">Cabina</th>
           <th scope="col">Nombre y Apellido</th>
+          <th scope="col">Motivo</th>
           <th scope="col">Total</th>
         </tr>
       </thead>
@@ -32,6 +33,7 @@
             <td>{{sales.id_passenger}}</td>
             <td>{{sales.nu_cabin}}</td>
             <td>{{sales.nm_psgr}}</td>
+            <td>{{sales.tx_anullment}}</td>
             <td align="right">{{ "%.2f"|format(sales.total)}}</td>
           </tr>
         {% if not loop.last %}
@@ -39,11 +41,11 @@
         {% endfor %}
       </tbody>
       <tfoot>
-        <tr>
-          <td colspan="3" style="text-align: right;"><strong>Total General:</strong></td>
-          <td><strong>{{ "%.2f"|format(total_sales_act) }}</strong></td>
-        </tr>
-      </tfoot>
+            <tr>
+                <td colspan="4" style="text-align: right;"><strong>Total General:</strong></td>
+                <td><strong>{{ "%.2f"|format(total_sales_act) }}</strong></td>
+            </tr>
+        </tfoot>
     </table>
 
 <br>

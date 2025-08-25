@@ -1,7 +1,7 @@
 {% extends 'base_r.html' %}
 
 {% block header %}
-  <h1>{% block title %}Consumo de productos del Bar{% endblock %}</h1>
+  <h1>{% block title %}Prods. & Servs. de Merchandising{% endblock %}</h1>
   {% if g.user %}
   
   {% endif %}
@@ -20,7 +20,7 @@
                 hx-trigger="change"
                 hx-target="#passenger-container"
                 hx-swap="innerHTML"
-                hx-vals='{"show_quantity": "false", "id_cat": "{{ id_category }}", "tbn": "{{ tbn }}"}'>
+                hx-vals='{"show_quantity": "false", "id_cat": "{{ id_category }}"}'>
             <option value="">Seleccionar cabina</option>
             {% for cabin in cabs %}
                 <option name="id_cabin" value="{{ cabin.id_cabin }}">{{ cabin.tx_cabin_desc }}</option>

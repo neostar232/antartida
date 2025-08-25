@@ -12,14 +12,22 @@
   <br>
   <form method="post" action="{{ url_for('config_vs.add_price_sp') }}">
     <label for="tx_aprp">Seleccione producto para ingresar/actualizar precio</label>
-    <select name="id_aprp">
+    <select name="id_aprp"
+            hx-get="{{ url_for('config_vs.get_price_htmx') }}"
+            hx-trigger="change"
+            hx-target="#actual_price-container"
+            hx-swap="innerHTML">
       <option value="" style="width: 200px;">Seleccionar producto</option>
       {% for prod in prods_sp %}
         <option name="id_aprp" value="{{prod.id_product}}" style="width: 200px;">{{prod.desc_product}}</option>
       {% endfor %}
     </select>
     <br>
-    <label for="nu_usd_pc">Precio en USD (separador decimal: punto)</label>
+      <div id="actual_price-container">
+          <p>Seleccionar producto para ver precio actual.</p>
+      </div>
+    <br>
+    <label for="nu_usd_pc">Nuevo Precio en USD (separador decimal: punto)</label>
     <input name="nu_usd_price" id="nu_usd_price" required style="width: 100px;"> 
     <br>
     <input type="submit" value="Actualizar Precio">

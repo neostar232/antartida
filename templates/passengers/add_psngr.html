@@ -68,7 +68,7 @@
             <select name="sel_cab" class="desplegable">
             <option value="">Seleccionar cabina</option>
             {% for cab in cabins %}
-                <option name="sel_cab" value="{{cab.id_cabin}}|{{cab.nu_cabin}}">{{cab.cabin}}</option>
+                <option name="sel_cab" value="{{cab.id_cabin}}|{{cab.nu_cabin}}">{{ cab.cabin }} (Disponibles: {{ cab.available }}) </option>
             {% endfor %}
             </select> *
         <br>
