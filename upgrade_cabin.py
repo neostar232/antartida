@@ -6,15 +6,19 @@ import pytz as tz
 
 bp = Blueprint("upgrade_cabin", __name__)
 current_campaign = 0
+categorias_ordenadas = [
+        "Standard Twin",
+        "Standard Plus Twin",
+        "Standard Plus Triple",
+        "Superior Twin",
+        "Premier Single",
+        "Premier Twin",
+        "Suite Twin"
+    ]
 
 @bp.route("/upgrade_cabin", methods=["GET", "POST"])
 @login_required
 def upgrade_cabin():
-    # Solo admin
-    #if session.get("role") != 1:
-    #    flash("Acceso restringido solo para administradores.")
-    #    return redirect(url_for("auth.redirectlink"))
-
     db = get_db()
     # Obtener lista de pasajeros y cabinas para los selects
     passengers = db.execute("SELECT id_passenger, tx_name || ' ' || tx_surname AS name FROM bt_passenger").fetchall()
@@ -24,7 +28,7 @@ def upgrade_cabin():
         id_passenger = request.form["id_passenger"]
         cabina_actual = request.form["cabina_actual"]
         cabina_upgrade = request.form["cabina_upgrade"]
-        tipo_upgrade = request.form["tipo_upgrade"]
+        tipo_upgrade = request.form.get("tipo_upgrade", "normal")
         precio = 0 if tipo_upgrade == "critico" else request.form["precio"]
         fecha_upgrade = request.form["fecha_upgrade"]
 
@@ -68,6 +72,35 @@ def add_consumption(id_passenger, price):
                 )
     db.commit()
     print("Añadido en bt_consumption")
+
+
+def update_passenger_info(id_passenger, id_cabin):
+    db = get_db()
+    # 1. Obtener el valor actual de tx_password
+    cur = db.execute("SELECT tx_password FROM bt_passenger WHERE id_passenger = ?", (id_passenger,))
+    row = cur.fetchone()
+    if row and row[0]:
+        old_password = row[0]
+        # 2. Extraer la parte después del arroba
+        if '@' in old_password:
+            password_suffix = old_password.split('@', 1)[1]
+        else:
+            password_suffix = old_password  # Por si no tiene arroba, se usa todo
+        # 3. Construir el nuevo tx_password
+        new_password = f"{id_cabin}@{password_suffix}"
+        # 4. Hacer el UPDATE de ambos campos
+        db.execute(
+            "UPDATE bt_passenger SET id_cabin = ?, tx_password = ? WHERE id_passenger = ?",
+            (id_cabin, new_password, id_passenger)
+        )
+    else:
+        # Si no hay tx_password, solo actualiza id_cabin
+        db.execute(
+            "UPDATE bt_passenger SET id_cabin = ? WHERE id_passenger = ?",
+            (id_cabin, id_passenger)
+        )
+    db.commit()
+    print("Actualizado en bt_passenger")
     
     
 @bp.route("/get_cabina_info", methods=["POST"])
@@ -75,13 +108,16 @@ def add_consumption(id_passenger, price):
 def get_cabina_info():
     db = get_db()
     id_passenger = request.form["id_passenger"]
+    tipo_upgrade = request.form.get("tipo_upgrade", "normal")
+    print("tipo_upgrade: ", tipo_upgrade)
+
 
     # 1) Cabina actual del pasajero (en campaña vigente) + tipo + nombre formateado
     row_actual = db.execute("""
         WITH cc AS (
           SELECT MAX(id_campaign) AS id FROM bt_cabin_occupation
         )
-        SELECT 
+        SELECT
           o.id_cabin AS cabina_actual_id,
           c.tx_cabin_type AS cabina_actual_type,
           '(' || c.nu_cabin || ') ' || c.tx_cabin_type AS cabina_actual_name,
@@ -114,6 +150,7 @@ def get_cabina_info():
         SELECT 
           c.id_cabin AS id,
           '(' || c.nu_cabin || ') ' || c.tx_cabin_type AS cabin,
+          c.tx_cabin_type AS tipo,
           c.nu_capacity AS capacidad_total,
           COALESCE(occ.ocupados, 0) AS ocupados,
           (c.nu_capacity - COALESCE(occ.ocupados, 0)) AS capacidad_restante
@@ -123,6 +160,36 @@ def get_cabina_info():
         ORDER BY c.nu_cabin;
     """).fetchall()
 
+    
+    idx_actual = categorias_ordenadas.index(cabina_actual_type) if cabina_actual_type in categorias_ordenadas else 0
+
+    libres_list = []
+    for r in libres:
+        print("r: ", r)
+        print("cabina_actual_type: ", cabina_actual_type)
+        tipo_cabina = r["tipo"]
+        print("tipo_cabina: ", tipo_cabina)
+        idx_cabina = categorias_ordenadas.index(tipo_cabina) if tipo_cabina in categorias_ordenadas else 0
+        print("idx_cabina: ", idx_cabina)
+        print("idx_actual: ", idx_actual)
+        if tipo_upgrade == "critico" or idx_cabina >= idx_actual:
+            libres_list.append({
+                "id": r["id"],
+                "cabin": r["cabin"],
+                "capacidad_restante": r["capacidad_restante"],
+                "capacidad_total": r["capacidad_total"]
+            })
+
+    print(libres_list)
+
+    return jsonify({
+        "cabina_actual_id": cabina_actual_id,
+        "cabina_actual_type": cabina_actual_type,
+        "cabina_actual_name": cabina_actual_name,
+        "cabinas_libres": libres_list
+    })
+
+    '''
     # Serializar resultado
     libres_list = [{
         "id": r["id"],
@@ -137,6 +204,8 @@ def get_cabina_info():
         "cabina_actual_name": cabina_actual_name,
         "cabinas_libres": libres_list
     })
+    '''
+
 
 
 @bp.route("/get_cabin_price_diff", methods=["POST"])

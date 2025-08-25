@@ -55,9 +55,11 @@ query_prods_ordered = query_prods_full + " ORDER BY 2"
 
 # Productos del punto de venta
 query_prods_sp = """
+                SELECT * FROM (
                 SELECT
                     p.id_product,
-                    s.tx_subcategory ||' - '|| b.tx_product ||' x '|| u.tx_unity AS desc_product
+                    s.tx_subcategory ||' - '|| b.tx_product ||' x '|| u.tx_unity AS desc_product,
+                    p.flag_price
                 FROM bt_product_prices p INNER JOIN bt_product b
                 ON p.id_product = b.id_product
                 INNER JOIN lkp_categories c
@@ -67,18 +69,17 @@ query_prods_sp = """
                 INNER JOIN lkp_units u
                 ON b.id_unity = u.id_unity
                 WHERE p.dt_to = '2100-12-31'
-                AND p.flag_price = 1
 
                 UNION
 
                 SELECT
                     p.id_product,
-                    'Tragos'||' - '|| d.tx_drink AS desc_product
+                    'Tragos'||' - '|| d.tx_drink AS desc_product,
+                    p.flag_price
                 FROM bt_product_prices p INNER JOIN lkp_drinks d
                 ON p.id_product = d.id_drink
                 WHERE p.dt_to = '2100-12-31'
-                AND p.flag_price = 1
-                ORDER BY 2;
+                ) a
                 """
 
 
@@ -323,12 +324,37 @@ def add_price():
 
 
 # Busco los productos del punto de venta
-@bp.route("/config/sp_sel_prod")
+@bp.route("/config_vs/sp_sel_prod", methods=["GET"])
 @login_required
 def sp_select():
+    t_action = request.args.get('t_act', type=int)
     db = get_db()
-    prods_sp = db.execute(query_prods_sp).fetchall()
-    return render_template("config_vs/sp_sel_prod.html", prods_sp = prods_sp)
+    if t_action == 1:
+        template_name = "config_vs/sp_sel_prod.html"
+        cond = " ORDER BY 2"
+        prods_sp = db.execute(query_prods_sp + cond).fetchall()
+    else:
+        template_name = "config_vs/mod_pprices.html"
+        cond = " WHERE flag_price = 1 ORDER BY 2"
+        prods_sp = db.execute(query_prods_sp + cond).fetchall()
+    return render_template(template_name, prods_sp = prods_sp)
+
+
+# Obtengo el precio actual del producto seleccionado
+@bp.route("/config_vs/get_price_htmx", methods=["GET"])
+@login_required
+def get_price_htmx():
+    db = get_db()
+    prod = request.args.get('id_aprp')
+    # Mensaje que se muestra antes de seleccionar un pasajero
+    if not prod:
+        return "<p>Selecciona producto para ver su precio actual.</p>"
+    get_price = db.execute(
+        "SELECT id_product_price, nu_price_usd FROM bt_product_prices WHERE dt_to = '2100-12-31' AND id_product = ?",
+        (prod,)
+    ).fetchone()
+    return render_template("config_vs/_actual_price.html", get_price = get_price)
+
 
 # Ejecuto la actualización de los precios de Venta
 @bp.route("/sp_upd_price", methods=["GET", "POST"])
@@ -339,6 +365,7 @@ def add_price_sp():
         idpr = request.form["id_aprp"]
         prusd = request.form["nu_usd_price"]
         oper = session.get("user_id")
+        def_price = '0'
         error = None
         if not idpr:
             error = "Debe seleccionar el producto"
@@ -348,8 +375,8 @@ def add_price_sp():
             flash(error)
         else:
             db = get_db()
-            db.execute("UPDATE bt_product_prices SET dt_to = ? WHERE id_product = ? AND dt_to = '2100-12-31'",
-                       (dtoday, idpr)
+            db.execute("UPDATE bt_product_prices SET flag_price = ?, dt_to = ? WHERE id_product = ? AND dt_to = '2100-12-31'",
+                       (def_price, dtoday, idpr)
                       )
             db.execute("INSERT INTO bt_product_prices (id_product, nu_price_usd, dt_from, id_user) VALUES (?,?,?,?)",
                         (idpr, prusd, dtoday, oper),
@@ -359,6 +386,20 @@ def add_price_sp():
             return redirect(url_for("auth.redirectlink"))      
     return render_template("config_vs/sp_sel_prod.html")
 
+
+# Ejecuto la actualización (dehabilitacion) de los productos
+@bp.route("/config_vs/mod_inhab_prod", methods=["GET", "POST"])
+@login_required
+def mod_inhab_prod():
+    if request.method == "POST":
+        idpr = request.form.getlist("id_imp") 
+        for idprs in idpr:
+            db = get_db()
+            upd_inh = """UPDATE bt_product_prices SET flag_price = 0 WHERE id_product =(?)"""
+            db.execute(upd_inh, (idprs,))
+            db.commit()
+        flash('Los productos se actualizaron correctamente')
+        return redirect(url_for("auth.redirectlink"))
 
 
 # Recorridos existentes

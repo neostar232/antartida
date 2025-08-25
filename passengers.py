@@ -10,16 +10,18 @@ import re
 
 bp = Blueprint("passengers", __name__)
 
-# Listado de rutas y decripción
+
+# Listado de rutas y descripción
 query_trips = """
                 SELECT
                     c.id_campaign,
                     c.id_trip ||' - '|| r.tx_route AS itinerary
                 FROM lkp_campaign c INNER JOIN lkp_routes r
                 ON c.id_route = r.id_route
-                -- AND c.dt_from >= CURRENT_DATE
+                AND c.flag_vigency = 1
                 ORDER BY c.dt_from;
                 """
+
 
 # Listado de cabinas y tipos
 query_cabins = """
@@ -30,6 +32,32 @@ query_cabins = """
                 FROM lkp_cabins
                 ORDER BY 2;
                 """
+
+# Listado de cabinas con disponibilidad
+query_cabins_av = """
+                SELECT
+                    lc.id_cabin,
+                    lc.nu_cabin||' - '|| lc.tx_cabin_type AS cabin,
+                    lc.nu_cabin,
+                    lc.nu_capacity - COALESCE(u.qpass, 0) AS available
+                FROM lkp_cabins lc LEFT JOIN
+                (
+                    SELECT
+                        co.id_cabin,
+                        COUNT(co.id_passenger) AS qpass
+                    FROM bt_cabin_occupation co INNER JOIN lkp_campaign kc
+                    ON (
+                        co.id_campaign = kc.id_campaign
+                        AND kc.flag_vigency = 1
+                        )
+                    GROUP BY 1
+                ) u
+                ON lc.id_cabin = u.id_cabin
+                GROUP BY 1, 2, 3, 4
+                HAVING available > 0
+                ORDER BY 2;
+                """
+
 
 # Completo ocupación
 query_occ = """
@@ -54,7 +82,7 @@ query_occ = """
 def add_psngr():
     db = get_db()
     trips = db.execute(query_trips).fetchall()
-    cabins = db.execute(query_cabins).fetchall()
+    cabins = db.execute(query_cabins_av).fetchall()
     return render_template("passengers/add_psngr.html", trips = trips, cabins = cabins)
 
 
@@ -183,7 +211,7 @@ def addr_psngr_ff():
 @login_required
 def enabled_trips():
     db = get_db()
-    query_trips = f"""
+    query_tripsx = f"""
         SELECT
             c.id_campaign,
             c.id_trip ||' - '|| r.tx_route AS itinerary,
@@ -194,7 +222,7 @@ def enabled_trips():
         AND c.flag_vigency = 1
         ORDER BY c.dt_from;
         """
-    entrips = db.execute(query_trips).fetchall()
+    entrips = db.execute(query_tripsx).fetchall()
     return render_template("passengers/disable_trip.html", entrips = entrips)
 
 

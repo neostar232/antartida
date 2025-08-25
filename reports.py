@@ -39,9 +39,9 @@ query_ls = """
                 -- c.tx_category AS categoria,
                 u.tx_unity AS presentacion,  
                 b.num_reorder_point AS punto_repedido,
-                p.q_stock AS existencias,
+                COALESCE(p.q_stock, 0) AS existencias,
                 CASE
-                    WHEN b.num_reorder_point >= p.q_stock THEN 'Solicitar'
+                    WHEN b.num_reorder_point >= COALESCE(p.q_stock, 0) THEN 'Solicitar'
                     ELSE 'OK'
                 END AS control_stock
             FROM bt_product b INNER JOIN lkp_categories c
@@ -272,6 +272,8 @@ query_sales_actual = """
                 id_passenger,
                 nu_cabin,
                 tx_name||', '||tx_surname AS nm_psgr,
+                flag_anullment,
+                tx_anullment,
                 SUM(nu_totbuys) AS total
             FROM
             (
@@ -280,7 +282,9 @@ query_sales_actual = """
                 ps.id_passenger,
                 ps.tx_name,
                 ps.tx_surname,
-                bc.nu_quantity * bc.pc_unity AS nu_totbuys
+                bc.nu_quantity * bc.pc_unity AS nu_totbuys,
+                bc.flag_anullment,
+                bc.tx_anullment
             FROM bt_passenger ps INNER JOIN bt_cabin_occupation co
             ON (
                 ps.id_passenger = co.id_passenger
@@ -295,8 +299,35 @@ query_sales_actual = """
             ON ps.id_campaign = lm.id_campaign
             WHERE lm.flag_vigency = 1
             ) a
-            GROUP BY 1, 2, 3;
+            WHERE a.flag_anullment = ?
+            GROUP BY 1, 2, 3, 4, 5
             """
+
+query_coll = """
+            SELECT
+                c.id_passenger,
+                s.id_campaign,
+                m.id_trip,
+                s.tx_name||', '||s.tx_surname AS nya,
+                COUNT(c.id_ticket) AS q_ticket,
+                STRFTIME('%Y-%m-%d %H:%M', t.dt_payment) AS dt_payment,
+                p.tx_pay_method,
+                SUM(c.nu_quantity * c.pc_unity) AS total
+            FROM bt_consumption c INNER JOIN bt_ticket_header t
+            ON c.id_ticket = t.id_ticket
+            INNER JOIN lkp_pay_methods p
+            ON t.id_pay_method = p.id_pay_method
+            INNER JOIN bt_passenger s
+            ON s.id_passenger = t.id_passenger
+            INNER JOIN lkp_campaign m
+            ON m.id_campaign = s.id_campaign
+            WHERE c.flag_anullment = 0
+            AND c.flag_payment = 1
+            -- AND c.id_passenger = (?)
+            GROUP BY 1, 2, 3, 4, 6, 7
+            ORDER BY 4, 6
+            """
+
 
 # Productos del punto de venta
 @bp.route("/prods_sp")
@@ -307,13 +338,26 @@ def prods_sp():
     return render_template("reports/prods_sp.html", prpv = prpv)
     
 
+# Genera el reporte de ventas del actual trip
 @bp.route("/sales_actual")
 @login_required
 def sales_actual():
     db = get_db()
-    acsales = db.execute(query_sales_actual).fetchall()
+    ind_anul = 0
+    acsales = db.execute(query_sales_actual, (ind_anul,)).fetchall()
     total_sales_act = sum(item['total'] for item in acsales) if acsales else 0
     return render_template("reports/sales_actual.html", acsales = acsales, total_sales_act = total_sales_act)
+
+
+# Genera el reporte de ventas canceladas del actual trip
+@bp.route("/sales_actual_cancel")
+@login_required
+def sales_actual_cancel():
+    db = get_db()
+    ind_anul = 1
+    acsales = db.execute(query_sales_actual, (ind_anul,)).fetchall()
+    total_sales_act = sum(item['total'] for item in acsales) if acsales else 0
+    return render_template("reports/sales_actual_cancel.html", acsales = acsales, total_sales_act = total_sales_act)
 
 
 # Funciones de exportacion de listados
@@ -432,3 +476,12 @@ def export_list_sp():
         response.headers["Content-Type"] = "application/vnd.ms-excel"
         return response
     
+
+# Listado de cobranzas realizadas
+@bp.route("/collections")
+@login_required
+def collections():
+    db = get_db()
+    coll = db.execute(query_coll).fetchall()
+    total_clt = sum(item['total'] for item in coll) if coll else 0
+    return render_template("reports/collections.html", coll = coll, total_clt = total_clt)

@@ -115,7 +115,7 @@ query_transf = """
                 -- t.id_io,
                 t.id_product,
                 s.tx_subcategory ||': '|| b.tx_product ||' - ' || u.tx_unity AS producto,
-                -- t.id_warehouse,
+                t.id_warehouse,
                 w.tx_warehouse,
                 -- t.dt_expiry,
                 SUM(t.q_batch_balance) AS q_batch_balance
@@ -128,13 +128,11 @@ query_transf = """
             INNER JOIN lkp_units u
             ON b.id_unity = u.id_unity
             INNER JOIN lkp_warehouse w
-            ON (
-                t.id_warehouse = w.id_warehouse
-                AND w.id_warehouse NOT IN (12, 13, 14, 15, 16)
-                )
+            ON t.id_warehouse = w.id_warehouse
             WHERE t.q_batch_balance > 0
             AND t.q_stock > 0
-            GROUP BY 1, 2, 3
+            AND w.id_warehouse < 12
+            GROUP BY 1, 2, 3, 4
             ORDER BY producto, t.dt_expiry
             """
 
@@ -604,7 +602,7 @@ def enter_wprods():
 def available_ptt():
     db = get_db()
     aptt = db.execute(query_transf).fetchall()
-    whs = db.execute(query_wh + ' AND id_warehouse < 14 ORDER BY tx_warehouse;').fetchall()
+    whs = db.execute(query_wh + ' AND id_warehouse NOT IN (15, 16) ORDER BY tx_warehouse;').fetchall()
     return render_template("stock/move_stock.html", whs = whs, aptt = aptt)
 
 
@@ -615,9 +613,12 @@ def enter_transf():
     if request.method == "POST":
         dtodayfull = str(datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None))
         prod = request.form.getlist('idprodh')
+        # print('Productos en lista idprodh: ', prod) # Punto de Control
         qtr = request.form.getlist('q_trf')
+        # print('Cantidades en lista q_trf: ', qtr)
         # qav = request.form.getlist('avai')
         wdest = request.form.getlist('id_wh')
+        # print('Depositos en lista wdest: ', wdest)
         # Creo DF's con los datos recibidos desde el formulario de carga - Disponible y a Transferir
         dict_transf = {'dt_io': dtodayfull, 'id_product': prod, 'id_warehouse': wdest, 'q_prodt': qtr}
         transx = pd.DataFrame(dict_transf)
@@ -636,6 +637,40 @@ def enter_transf():
         transf = transf.assign(q_batch_balance=transf['q_prodt'])
         transf.insert(loc=0, column='dt_io', value=dtodayfull, allow_duplicates=False)
         # Comienzo a operar sobre los datos obtenidos
+        # Si hay transferencias hacia el bar, las envio a la tabla correspondiente
+        if (transf['id_warehouse'] == 12).sum() > 0:
+            transf_12 = transf[transf['id_warehouse'] == 12]
+            transf_to_ins_bar = [tuple(row) for row in transf_12.values]
+            db = get_db()
+            query_ins_bts_bar = """INSERT INTO bt_stock_bar (dt_io, id_product, id_warehouse, q_inn, q_out, q_batch_balance) VALUES (?,?,?,?,?,?)"""
+            prods_tt = tuple(transf_12['id_product'].tolist())
+            ids_str = ', '.join(map(str, prods_tt))
+            qry_updexistbar = f"""
+                    UPDATE bt_stock_bar SET q_stock = a.stock_av
+                    FROM
+                    (
+                    SELECT
+                        id_io,
+                        id_product,
+                        id_warehouse,
+                        q_batch_balance,
+                        SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY id_io, dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock_av
+                    FROM bt_stock_bar
+                    WHERE q_batch_balance >= 0
+                    AND id_warehouse = 12
+                    AND (
+                        q_stock >= 0
+                        OR q_stock IS NULL
+                        )
+                    AND id_product IN ({ids_str})
+                    ) a  
+                    WHERE bt_stock_bar.id_io = a.id_io
+                    """
+            db.executemany(query_ins_bts_bar, transf_to_ins_bar)
+            db.execute(qry_updexistbar).fetchall()
+            db.commit()
+        else:
+            pass
         db = get_db()
         query_ins_bts = """INSERT INTO bt_stock (dt_io, id_product, id_warehouse, q_inn, q_out, q_batch_balance) VALUES (?,?,?,?,?,?)"""
         transf_to_ins = [tuple(row) for row in transf.values]
@@ -658,17 +693,16 @@ def enter_transf():
         pl2 = 0  # Posición del ID de producto en l2
         pl13 = 3 # Posición de la cantidad en stock en l1
         pl21 = 1 # Posición de la cantidad a transferir en l2
-
         # Se itera sobre CADA solicitud de transferencia en l2
         for i, transfer_request in enumerate(l2):
             if len(transfer_request) > pl2 and len(transfer_request) > pl21:
                 product_to_transfer = transfer_request[pl2]
                 requested_transfer_quantity = transfer_request[pl21]
 
-                # Realizar un seguimiento de cuanto se ha transferido realmente para el producto actual
+                # Realizo seguimiento de cuanto se ha transferido realmente para el producto actual
                 current_transferred_quantity = 0
 
-                # Iterar sobre l1 para encontrar stock disponible del producto
+                # Itero sobre l1 para encontrar stock disponible del producto
                 for j in range(len(l1)):
                     inventory_item = l1[j] # Obtenemos la sublista actual de l1
 
@@ -719,7 +753,6 @@ def enter_transf():
 
         # Genero un DF para poder trabajarlo en la BD
         dfx = pd.DataFrame(l1, columns=['id_io', 'id_product', 'id_warehouse', 'q_batch_balance', 'stock_acum', 'transfer']).fillna(0)
-
         # Actualizo los datos de las transferencias de salida
         qry_udp_bts = """
                         UPDATE bt_stock
@@ -744,7 +777,6 @@ def enter_transf():
             db.commit()
         except Exception as e:
             db.rollback()
-
         # Concateno para realizar el update del campo q_stock (acumulado) en bt_stock
         qry_str1 = """
                     UPDATE bt_stock SET q_stock = a.stock_av
@@ -804,12 +836,12 @@ def enter_transf():
         db.commit()
         # Controlo que los valores a transferir no sean nulos
         comprob = (dfx['transfer'] != 0).sum()
-        # comprob = db.execute('SELECT COUNT(*) AS q FROM temp_transfer WHERE q_prodt > q_proda;').fetchone()[0]
         if comprob >= 1:
             flash('Los productos fueron transferidos correctamente.')
             return redirect(url_for("auth.redirectlink"))
         flash('Los productos fueron transferidos correctamente, pero hubo intento de transferir por encima de la existencia. Ver listado.')
         return redirect(url_for("auth.redirectlink"))
+
 
 
 # Detalle de los almacenes para seleccionar en la baja por eventualidades

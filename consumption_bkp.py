@@ -174,88 +174,6 @@ query_ust = """
             """
 
 
-# Obtengo productos y cantidades de la venta
-query_sale = """
-            SELECT
-                id_product,
-                SUM(nu_quantity) AS nu_quantity
-            FROM
-            (
-            SELECT
-                id_product,
-                nu_quantity,
-                id_ticket
-            FROM bt_consumption
-            WHERE id_product < 9000
-
-            UNION ALL
-
-            SELECT
-                --a.id_drink
-                a.id_product,
-                ROUND(a.qty_ing * 1.0 / e.um_equivalence, 3) AS nu_quantity,
-                c.id_ticket    
-            FROM
-            (
-            SELECT
-                d.id_drink,
-                d.tx_drink,
-                p.id_product,
-                d.qty_ing1 AS qty_ing,
-                p.id_unity,
-                p.id_subcategory
-            FROM lkp_drinks d INNER JOIN bt_product p
-            ON d.id_ing1 = p.id_product
-
-            UNION
-
-            SELECT
-                d.id_drink,
-                d.tx_drink,
-                p.id_product,
-                d.qty_ing2 AS qty_ing,
-                p.id_unity,
-                p.id_subcategory
-            FROM lkp_drinks d INNER JOIN bt_product p
-            ON d.id_ing2 = p.id_product
-
-            UNION
-
-            SELECT
-                d.id_drink,
-                d.tx_drink,
-                p.id_product,
-                d.qty_ing3 AS qty_ing,
-                p.id_unity,
-                p.id_subcategory
-            FROM lkp_drinks d INNER JOIN bt_product p
-            ON d.id_ing3 = p.id_product
-
-            UNION
-
-            SELECT
-                d.id_drink,
-                d.tx_drink,
-                p.id_product,
-                d.qty_ing4 AS qty_ing,
-                p.id_unity,
-                p.id_subcategory    
-            FROM lkp_drinks d INNER JOIN bt_product p
-            ON d.id_ing4 = p.id_product
-            ) a
-            INNER JOIN lkp_equiv_drinks e
-            ON (
-                a.id_unity = e.id_unity
-                AND a.id_subcategory = e.id_subcategory
-                )
-            INNER JOIN bt_consumption c
-            ON a.id_drink = c.id_product
-            )
-            WHERE id_ticket = ?
-            GROUP BY 1
-            """
-
-
 # Venta de Productos y Servicios
 @bp.route("/consumption/services")
 @login_required
@@ -465,136 +383,146 @@ def process_order():
         dtoday = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
         oper = session.get("user_id")
         db = get_db()
-        try:
-            # Genero el encabezado del ticket
-            db.execute("INSERT INTO bt_ticket_header (dt_ticket, id_passenger, id_user) VALUES (?,?,?)",
-                       (dtoday, psg, oper))
-            db.commit()
-            req_tkt = db.execute('SELECT MAX(id_ticket) AS mxm FROM bt_ticket_header;').fetchone()[0]
-            # Inserto los consumos en bt_consumption
-            consumptions_data = [(req_tkt, o, psg, dtoday, float(q), float(p)) for o, q, p in zip(oitem, oqty, oupr)]
-            db.executemany("INSERT INTO bt_consumption (id_ticket, id_product, id_passenger, dt_consumption, nu_quantity, pc_unity) VALUES (?,?,?,?,?,?)",
-                           consumptions_data)
-            db.commit()
-            # De acuerdo al producto, indico el nombre de la tabla a utilizar
-            tablename_value = request.form.get("tbn", type=int)
-            tts = 'bt_stock' if tablename_value == 1 else 'bt_stock_bar'
-            # Obtener productos y cantidades consumidas (desde bt_consumption)
-            df_consumed = pd.read_sql_query(query_sale, db, params=[req_tkt])
-            # Obtengo el stock disponible
-            query_stock = f"""
-                SELECT id_io, dt_io, id_product, q_batch_balance
-                FROM {tts}
-                WHERE q_batch_balance > 0
-                ORDER BY dt_io ASC, id_io ASC
-            """
-            df_stock = pd.read_sql_query(query_stock, db)
-            # Creo una copia del df para evitar problemas
-            df_stock = df_stock.copy()
-            df_stock['dt_io'] = pd.to_datetime(df_stock['dt_io'], format='mixed')
-            df_update = pd.merge(df_stock, df_consumed, on='id_product')
-            df_update.sort_values(by=['dt_io', 'id_io'], inplace=True)
-            df_update['cum_stock'] = df_update.groupby('id_product')['q_batch_balance'].cumsum()
-            df_update['q_taken'] = df_update['cum_stock'] - (df_update['cum_stock'] - df_update['nu_quantity'])
-            df_update['q_taken'] = df_update['q_taken'].clip(upper=df_update['q_batch_balance'])
-            df_update['q_taken'] = df_update['q_taken'].clip(lower=0)
-            df_updates_final = df_update[df_update['q_taken'] > 0]
-            print("DataFrame final para la actualización:", df_updates_final)
-            print("Filas a actualizar:", len(df_updates_final))
-            # Registro las salidas hacia id_warehouse 16
-            if tts == 'bt_stock':
-                exit_stock_data = [(dtoday, int(row['id_product']), 16, int(row['q_taken']), 0, 0, 0, 'Salida por Venta')
-                                   for _, row in df_updates_final.iterrows()]
+        # Genero el header del ticket
+        db.execute("INSERT INTO bt_ticket_header (dt_ticket, id_passenger, id_user) VALUES (?,?,?)",
+                   (dtoday, psg, oper))
+        db.commit() 
+        # Recupero el nro de tkt para poder luego hacer el insert en la tabla de consumos
+        req_tkt = db.execute('SELECT MAX(id_ticket) AS mxm FROM bt_ticket_header;').fetchone()[0]
+        for oitems, oqtys, ouprs in zip(oitem, oqty, oupr):
+            db.execute("INSERT INTO bt_consumption (id_ticket, id_product, id_passenger, dt_consumption, nu_quantity, pc_unity) VALUES (?,?,?,?,?,?)",
+                       (req_tkt, oitems, psg, dtoday, oqtys, ouprs))
+        db.commit()
+        # Aquí comienza el agregado a la tabla de stock
+        dtodayfull = str(datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None))
+        # Obtengo el valor identificatorio de la tabla de stock desde el formulario
+        tablename_value = request.form.get("tbn", type=int)
+        tts = 'bt_stock' if tablename_value == 1 else 'bt_stock_bar'
+        # Obtengo productos y cantidades de la venta
+        query_sale = "SELECT id_product, nu_quantity FROM bt_consumption WHERE id_ticket = ?"
+        dfcl = pd.read_sql_query(query_sale, db, params=[req_tkt])
+        # Creo las listas desde los campos de la consulta
+        prod = dfcl['id_product'].tolist()
+        qtr = dfcl['nu_quantity'].tolist()
+        wdest = 16 # Valor fijo para el almacén
+        # Creo DataFrames para el procesamiento
+        dict_transf = {'dt_io': dtodayfull, 'id_product': prod, 'id_warehouse': wdest, 'q_prodt': qtr}
+        transx = pd.DataFrame(dict_transf)
+        transf = pd.DataFrame(transx, columns=['id_product', 'id_warehouse', 'q_prodt'])
+        transf[['id_product', 'id_warehouse', 'q_prodt']] = transf[['id_product', 'id_warehouse', 'q_prodt']].apply(pd.to_numeric)
+        transf['q_out'] = 0
+        transf = transf.assign(q_batch_balance=transf['q_prodt'])
+        transf.insert(loc=0, column='dt_io', value=dtodayfull, allow_duplicates=False)
+        # Actualizar stock: inserto los movimientos
+        query_ins_bts = f"""INSERT INTO {tts} (dt_io, id_product, id_warehouse, q_inn, q_out, q_batch_balance) VALUES (?,?,?,?,?,?)"""
+        transf_to_ins = [tuple(row) for row in transf.values]
+        db.executemany(query_ins_bts, transf_to_ins)
+        db.commit()
+        # Obtengo la lista de productos para proseguir
+        df2 = transf.loc[:, ['id_product', 'q_prodt']]
+        l2 = df2.values.tolist()
+        only_prods = [sublist[0] for sublist in l2]
+        res_only_prods = tuple(only_prods)
+        # Cargo el stock existente para operar sobre él
+        query_us = query_ust.format(tts)
+        df1 = pd.read_sql_query(query_us + ' AND id_product IN (' + (', '.join(map(str, res_only_prods))) + ')', db)
+        df1.columns = ['id_io', 'id_product', 'id_warehouse', 'q_batch_balance', 'stock_av']
+        l1 = df1.values.tolist()
+        pl1 = 1; pl2 = 0; pl13 = 3; pl21 = 1
+        # Se itera sobre cada solicitud de consumo en l2
+        for i, transfer_request in enumerate(l2):
+            if len(transfer_request) > pl2 and len(transfer_request) > pl21:
+                product_to_transfer = transfer_request[pl2]
+                requested_transfer_quantity = transfer_request[pl21]
+                current_transferred_quantity = 0
+                for j in range(len(l1)):
+                    inventory_item = l1[j]
+                    if len(inventory_item) > pl1 and len(inventory_item) > pl13:
+                        product_in_stock = inventory_item[pl1]
+                        quantity_in_stock = inventory_item[pl13]
+                        batch_id = inventory_item[0]
+                        if product_in_stock == product_to_transfer and quantity_in_stock > 0:
+                            remaining_to_transfer = requested_transfer_quantity - current_transferred_quantity
+                            if quantity_in_stock >= remaining_to_transfer:
+                                quantity_to_take_from_batch = remaining_to_transfer
+                                l1[j][pl13] -= quantity_to_take_from_batch
+                                current_transferred_quantity += quantity_to_take_from_batch
+                                l1[j].append(quantity_to_take_from_batch)
+                                if current_transferred_quantity == requested_transfer_quantity:
+                                    break
+                            else:
+                                quantity_to_take_from_batch = quantity_in_stock
+                                l1[j][pl13] = 0
+                                current_transferred_quantity += quantity_to_take_from_batch
+                                l1[j].append(quantity_to_take_from_batch)
+                    else:
+                        flash(f" - Cuidado: El producto {inventory_item} en l1 no tiene suficiente cantidad. Corregir el cargo en la cuenta del Pasajero")
+                if current_transferred_quantity < requested_transfer_quantity:
+                    flash(f" !!! Atención: No se completó la transferencia de {product_to_transfer}. Faltan {requested_transfer_quantity - current_transferred_quantity} unidades.")
             else:
-                exit_stock_data = [(dtoday, int(row['id_product']), 16, row['q_taken'], 0, 0, 0, 'Salida por Venta')
-                                   for _, row in df_updates_final.iterrows()]
-
-            qry_insert_bts = f"""
-                INSERT INTO {tts} (dt_io, id_product, id_warehouse, q_inn, q_out, q_batch_balance, q_stock, tx_reason)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """
-            db.executemany(qry_insert_bts, exit_stock_data)
-            db.commit()
-            # Actualizo los lotes de stock de origen (UPDATE q_batch_balance y q_out)
-            if tts == 'bt_stock':
-                data_update = [(int(row['q_batch_balance'] - row['q_taken']), int(row['q_taken']), int(row['id_io']), int(row['id_product']))
-                               for _, row in df_updates_final.iterrows()]
-            else: # bt_stock_bar
-                data_update = [(row['q_batch_balance'] - row['q_taken'], row['q_taken'], int(row['id_io']), int(row['id_product']))
-                               for _, row in df_updates_final.iterrows()]
-            qry_udp_bts = f"""
-                UPDATE {tts} 
-                SET q_batch_balance = ?, q_out = COALESCE(q_out, 0) + ? 
-                WHERE id_io = ? AND id_product = ?;
-            """
+                flash(f"--- Cuidado: La cantidad a transferir {transfer_request} en l2 no tiene los elementos necesarios. Se saltea la transferencia. ---")
+        dfx = pd.DataFrame(l1, columns=['id_io', 'id_product', 'id_warehouse', 'q_batch_balance', 'stock_acum', 'transfer']).fillna(0)
+        # Actualizo stock de los productos existentes
+        qry_udp_bts = f"""UPDATE {tts} SET q_batch_balance = ?, q_out = COALESCE(q_out, 0) + ? WHERE id_io = ? AND id_product = ?;"""
+        data_update = [(int(row['q_batch_balance']), int(row['transfer']), int(row['id_io']), int(row['id_product'])) for index, row in dfx.iterrows()]
+        try:
             db.executemany(qry_udp_bts, data_update)
             db.commit()
-            # Actualizo el stock total de los lotes de los productos involucrados
-            product_ids_to_update = df_updates_final['id_product'].unique().tolist()
-            products_str = ', '.join(map(str, product_ids_to_update))
-            query_total_stock = f"""
-                SELECT id_product, SUM(q_batch_balance) AS total_stock
-                FROM {tts}
-                WHERE id_product IN ({products_str}) AND id_warehouse != 16
-                GROUP BY id_product
-            """
-            df_total_stock = pd.read_sql_query(query_total_stock, db)
-            # Selecciono tabla a utilizar
-            if tts == 'bt_stock':
-                 q_stock_data = [(int(row['total_stock']), int(row['id_product']))
-                                for _, row in df_total_stock.iterrows()]
-            else: # bt_stock_bar
-                 q_stock_data = [(row['total_stock'], int(row['id_product']))
-                                for _, row in df_total_stock.iterrows()]
-            # La actualización tiene un filtro para no tocar los registros de salida (venta)
-            qry_udp_qstock = f"""
-                UPDATE {tts} SET q_stock = ?
-                WHERE id_product = ? AND id_warehouse != 16;
-            """
-            db.executemany(qry_udp_qstock, q_stock_data)
-            db.commit()
-            # Actualizo tablas bt_product y temp_order
-            if tts != 'bt_stock_bar':
-                products_str = ', '.join(map(str, df_consumed['id_product'].unique()))
-                ptu = f"""
-                        UPDATE bt_product
-                        SET q_stock = (
-                            SELECT q_stock
-                            FROM {tts}
-                            WHERE id_product = bt_product.id_product
-                            AND id_warehouse != 16
-                            ORDER BY id_io DESC
-                            LIMIT 1)
-                        WHERE bt_product.id_product IN ({products_str});
-                        """
-                db.execute(ptu)
-                uld = f"""UPDATE bt_product SET dt_last_update = ? WHERE id_product IN ({products_str})"""
-                db.execute(uld, (str(dtoday),))
-                db.commit()
-            sppo = db.execute(f"""SELECT COUNT(*) AS quantity FROM temp_order""").fetchone()[0]
-            if sppo > 0:
-                products_str = ', '. join(map(str, df_consumed['id_product'].unique()))
-                tou = f"""
-                        UPDATE temp_order
-                        SET q_exist = (
-                            SELECT q_stock
-                            FROM {tts}
-                            WHERE id_product = temp_order.id_prod
-                            AND id_warehouse != 16
-                            ORDER BY id_io DESC
-                            LIMIT 1)
-                        WHERE temp_order.id_prod IN ({products_str});
-                        """
-                db.execute(tou)
-                db.commit()
-            # Cuando todo está bien, prosigo hacia la impresión del ticket; muestro mensaje
-            flash('Los productos han sido cargados al pasajero y el stock actualizado correctamente.')
-            return redirect(url_for("print_module.print_ticket_page", ticket_id=req_tkt))
-        # En caso de error, los movimientos de stock no se registran, sólo las imputaciones al cliente.    
         except Exception as e:
             db.rollback()
-            flash(f"Error menjando stock en el proceso de orden: {e}")
-            return redirect(url_for("auth.redirectlink"))
+            flash(f"Error al actualizar el stock: {e}")
+        # Recalculo y actualizo los stocks acumulados
+        qry_str1 = f"""
+            UPDATE {tts} SET q_stock = a.stock_av FROM (
+                SELECT
+                    id_io,
+                    id_product,
+                    SUM(q_batch_balance) OVER(PARTITION BY id_product ORDER BY id_io, dt_expiry ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS stock_av
+                FROM {tts}
+                WHERE q_batch_balance >= 0 AND id_warehouse <= 12 AND q_stock >= 0
+            ) a WHERE {tts}.id_io = a.id_io AND {tts}.id_product IN ({', '.join(map(str, res_only_prods))});
+            """
+        db.execute(qry_str1)
+        # Actualizo el stock final en bt_product
+        ptu = f"""
+            UPDATE bt_product SET q_stock = a.q_stock
+            FROM (
+                SELECT
+                    id_product,
+                    q_stock,
+                    RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+                FROM {tts}
+                WHERE id_warehouse <= 12
+            ) a WHERE a.stock_det = 1 AND bt_product.id_product = a.id_product AND a.id_product IN ({', '.join(map(str, res_only_prods))});
+            """
+        db.execute(ptu)
+        # Actualizo la fecha de última modificación de los productos
+        uld = f"""UPDATE bt_product SET dt_last_update = ? WHERE id_product IN ({', '.join(map(str, res_only_prods))})"""
+        db.execute(uld, (dtodayfull,))
+        # Actualizo existencias en temp_order si existe
+        sppo = db.execute(f"""SELECT COUNT(*) AS quantity FROM temp_order""").fetchone()[0]
+        if sppo > 0:
+            tou = f"""
+                UPDATE temp_order SET q_exist = a.q_stock
+                FROM (
+                    SELECT
+                        id_product,
+                        q_stock,
+                        RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+                    FROM {tts}
+                    WHERE id_warehouse <= 12
+                ) a WHERE a.stock_det = 1 AND temp_order.id_prod = a.id_product AND a.id_product IN ({', '.join(map(str, res_only_prods))});
+                """
+            db.execute(tou)
+        db.commit()
+        # Redirección final
+        comprob = (dfx['transfer'] != 0).sum()
+        if comprob >= 1:
+            flash('Los productos han sido cargados al pasajero y el stock actualizado correctamente.')
+        else:
+            flash('Hubo un error al actualizar el stock. Revisa el listado para ver los detalles.')
+        return redirect(url_for("print_module.print_ticket_page", ticket_id=req_tkt))
+
 
 
 # Impresiones - MODIFICAR AL TENER LA IMPRESORA FUNCIONANDO
