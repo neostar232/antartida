@@ -1,10 +1,11 @@
 import functools
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for, session, send_from_directory, current_app
 from datetime import datetime
 import pytz as tz
 from .auth import login_required
 from .db import get_db
 import os
+from os.path import basename
 import pandas as pd
 import re
 
@@ -139,9 +140,14 @@ def add_psngr_ff():
 @bp.route("/passengers/how_to")
 @login_required
 def how_to():
-    directory = os.path.join('static', 'vs')
+    app_root = current_app.root_path
+    # directory = os.path.join('static', 'vs')
+    directory = 'static/vs'
+    dirpath = os.path.join(app_root, directory)
     filename = 'Pasajeros_Buque.xlsx'
-    return send_from_directory(directory, filename, as_attachment=True)
+    # return send_from_directory(directory, filename, as_attachment=True)
+    return send_from_directory(dirpath, filename, as_attachment=True)
+
 
 
 # Alta de Pasajeros (bulk desde archivo)
@@ -151,8 +157,11 @@ def addr_psngr_ff():
     if request.method == "POST":
         file = request.files["file"]
         if file and file.filename.endswith('.csv'):
-            root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../ushuaia"))
-            filename = os.path.join(root + '/upl_files/', file.filename)
+            # Cambio la ruta absoluta para que lo lea desde cualquier estructura
+            # root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../ushuaia"))
+            root = current_app.root_path
+            directory = 'upl_files'
+            filename = os.path.join(root, 'static', directory, file.filename)
             file.save(filename)
             # Hasta acá se sube el archivo CSV para agregar los pasajeros.En adelante, se procesa el archivo CSV
             df = pd.read_csv(filename, encoding='utf-8', sep=';')

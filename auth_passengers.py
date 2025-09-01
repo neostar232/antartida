@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, flash, redirect, url_for, session
 from werkzeug.security import check_password_hash
 from .db import get_db
+from .send_email import send_mail 
 
 bp = Blueprint("auth_passengers", __name__, url_prefix="/passengers")
 
@@ -38,6 +39,32 @@ def front():
             return redirect(url_for("auth_passengers.menu"))
         flash(error)
     return render_template("passengers/login_passenger.html")
+
+@bp.route("/send_password_reset_email", methods=["POST"])
+def send_password_reset_email():
+    print("Hola")
+    data = request.get_json()
+    email = data.get('email', '').lower()
+    if not email:
+        return {"message": "Email requerido."}, 400
+    db = get_db()
+    user = db.execute(
+        "SELECT tx_password, tx_name FROM bt_passenger WHERE tx_email = ?", (email,)
+    ).fetchone()
+    print(user['tx_name'])
+
+    if user:
+        password = user["tx_password"]
+        username = user["tx_name"]
+        try:
+            send_mail(username, email, password)
+            return {"message": "An email with your password has been sent. Check spam folder also."}, 200
+        except Exception as e:
+            print(f"Error al enviar correo: {e}")
+            return {"message": "Error sending the email."}, 500
+    else:
+        return {"message": "Your email has not been registered. Please go to the ship's counter."}, 404
+
 
 @bp.route("/menu")
 def menu():

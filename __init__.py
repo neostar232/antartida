@@ -5,6 +5,7 @@ from flask_caching import Cache
 import os
 
 
+
 def create_app(test_config=None):
     # Crea y configura una instancia de la aplicacion Flask
     app = Flask(__name__, instance_relative_config=False)
@@ -42,7 +43,7 @@ def create_app(test_config=None):
     # def log_visit(response):
     #    db = get_db()
     #    url = request.url
-    #    link_to_del = ['edirectlink', 'static'] # Con static en la lista, no se accede al ccs
+    #    link_to_del = ['redirectlink', 'static'] # Con static en la lista, no se accede al ccs
     #    res = any(elem in url for elem in link_to_del)
     #    if res == False:
     #        db.execute("INSERT INTO logs(dt_log, id_object, id_user) VALUES (?,?,?)", (dt.datetime.now(), url, session.get("user_id")))
@@ -66,6 +67,7 @@ def create_app(test_config=None):
     @app.route('/favicon.ico')
     def favicon():
         return send_from_directory(app.static_folder, 'favicon.ico', mimetype='static/favicon.ico')
+    
     
     # Aplicando los Blueprints a la app
     from . import auth, reports, stock, config_vs, orders, cron, consumption, passengers, auth_passengers, print_module, upgrade_cabin

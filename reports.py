@@ -56,8 +56,8 @@ query_ls = """
                     dt_io,
                     q_stock,
                     RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
-                FROM bt_stock
-                WHERE id_warehouse <= 11
+                FROM {}
+                WHERE id_warehouse {}
             ) p
             ON b.id_product = p.id_product
             WHERE b.flag_ctrl = 1
@@ -189,20 +189,33 @@ def prodlist():
 
 
 # Listado de productos en Stock
-@bp.route("/prodstock")
+@bp.route("/prodstock", methods=["GET", "POST"])
 @login_required
 def prodstock():
+    id_wh = request.args.get('id_wh', type=int)
+    if id_wh == 1:
+        ttr = 'bt_stock'
+        wh_filter = '<= 11'
+        template_name = "reports/prodstock.html"
+    else:
+        ttr = 'bt_stock_bar'
+        wh_filter = '<> 16'
+        template_name = "reports/prodstock_bar.html"
+    query = query_ls.format(ttr, wh_filter)
     db = get_db()
-    prstock = db.execute(query_ls).fetchall()
-    return render_template("reports/prodstock.html", prstock = prstock)
+    prstock = db.execute(query).fetchall()
+    return render_template(template_name, prstock = prstock)
 
 
 # Listado de productos a reponer
 @bp.route("/prodstockr")
 @login_required
 def prodstockr():
+    ttr = 'bt_stock'
+    wh_filter = '<= 11'
+    query = query_lsr.format(ttr, wh_filter)
     db = get_db()
-    prstock_rep = db.execute(query_lsr).fetchall()
+    prstock_rep = db.execute(query).fetchall()
     return render_template("reports/prodstockr.html", prstock_rep = prstock_rep)
 
 
@@ -377,20 +390,30 @@ def export_list():
         return response
 
 
-@bp.route("/export_lc")
+@bp.route("/export_lc", methods=["GET", "POST"])
 @login_required
 def export_lc():
     io = BytesIO()
     with pd.ExcelWriter(io,  engine='openpyxl') as writer:
+        id_wh = request.args.get('id_wh', type=int)
+        if id_wh == 1:
+            ttr = 'bt_stock'
+            wh_filter = '<= 11'
+            filename = 'listado_de_control.xlsx'
+        else:
+            ttr = 'bt_stock_bar'
+            wh_filter = '<> 16'
+            filename = 'listado_de_control_bar.xlsx'
+        query = query_ls.format(ttr, wh_filter)
         db = get_db()
-        list = pd.read_sql_query(query_ls, db)
-        # result = pd.DataFrame(list)
+        list = pd.read_sql_query(query, db)
         pd.DataFrame(list).to_excel(writer, sheet_name='Listado de Control', index=False)
         writer.close()
         response = make_response(io.getvalue())
-        response.headers['Content-Disposition'] = 'attachment; filename=listado_de_control.xlsx'
+        response.headers['Content-Disposition'] = f'attachment; filename={filename}'
         response.headers["Content-Type"] = "application/vnd.ms-excel"
         return response
+
 
 
 @bp.route("/export_pr")
