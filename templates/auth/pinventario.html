@@ -26,21 +26,27 @@
     <br>
     <a class ="action" href="{{ url_for('stock.available_ptt') }}" style="margin-right: 10px;">Movimientos entre Almacenes</a>
     <br>
-      <a class="action" href="{{ url_for('reports.prodstock') }}" style="margin-right: 10px;"> Listado/Control de Stock</a>
-      <a class ="action" href="{{ url_for('reports.export_lc') }}">Descargar</a>
-      <br>
-      <a class="action" href="{{ url_for('reports.prodstockr') }}" style="margin-right: 10px;"> Control de Stock/Punto de Reposición</a>
-      <a class ="action" href="{{ url_for('reports.export_pr') }}">Descargar</a>
-      <br>
-      <a class ="action" href="{{ url_for('stock.export_we') }}">Stock por Almacén (Descargar)</a>
-      <br>
-      <a class ="action" href="{{ url_for('stock.export_wee') }}">Stock a Vencer en los próximos 30 días (Descargar)</a>
-      <br>
-      <a class ="action" href="{{ url_for('reports.outoforder') }}">Diferencias OC/Recibido</a>
-      <br>
-      <a class ="action" href="{{ url_for('reports.consumption_dates') }}"">Consumos</a>
-      <br>
-      <a class ="action" href="{{ url_for('reports.prodstrf') }}"">Intento Fallido de transferencia</a>
+    <a class="action" href="{{ url_for('reports.prodstock', id_wh=1) }}" style="margin-right: 10px;"> Listado/Control de Stock (No Bar)</a>
+    <a class ="action" href="{{ url_for('reports.export_lc', id_wh=1) }}">Descargar</a>
+    <br>
+    <a class="action" href="{{ url_for('reports.prodstock', id_wh=12) }}" style="margin-right: 10px;"> Listado/Control de Stock (Bar)</a>
+    <a class ="action" href="{{ url_for('reports.export_lc', id_wh=12) }}">Descargar</a>
+    <br>
+    Listado/Control de Stock (Total)   Descargar
+    <!--<a class ="action" href="{{ url_for('reports.export_lc', id_wh=12) }}">Descargar</a> -->
+    <br>
+    <a class="action" href="{{ url_for('reports.prodstockr') }}" style="margin-right: 10px;"> Control de Stock/Punto de Reposición</a>
+    <a class ="action" href="{{ url_for('reports.export_pr') }}">Descargar</a>
+    <br>
+    <a class ="action" href="{{ url_for('stock.export_we') }}">Stock por Almacén (Descargar)</a>
+    <br>
+    <a class ="action" href="{{ url_for('stock.export_wee') }}">Stock a Vencer en los próximos 30 días (Descargar)</a>
+    <br>
+    <a class ="action" href="{{ url_for('reports.outoforder') }}">Diferencias OC/Recibido</a>
+    <br>
+    <a class ="action" href="{{ url_for('reports.consumption_dates') }}"">Consumos</a>
+    <br>
+    <a class ="action" href="{{ url_for('reports.prodstrf') }}"">Intento Fallido de transferencia</a>
   <br>
 
   <!-- 

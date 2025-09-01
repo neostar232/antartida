@@ -1,0 +1,43 @@
+{% extends 'base_r.html' %}
+<style>
+    /* Estilo del recibo para simular un ticket de impresora térmica */
+    .receipt {
+        max-width: 300px;
+        margin: 0 auto;
+        padding: 10px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        background-color: #fff;
+        border: 1px solid #ccc;
+    }
+    .text-center {
+        text-align: center;
+    }
+    .item-list {
+        margin-top: 10px;
+        border-top: 1px dashed #000;
+        border-bottom: 1px dashed #000;
+        padding: 5px 0;
+    }
+</style>
+
+{% block content %}
+<div class="receipt">
+    <div class="text-center">
+        <h2>Ticket de Venta</h2>
+        <p><strong>Fecha:</strong> {{ header.dt_ticket }}</p>
+        <p><strong>Cliente:</strong> {{ header.passenger_name }}</p>
+    </div>
+    <div class="item-list">
+        {% for item in items_list %}
+            <div>
+                <p>{{ item.product }}</p>
+                <p>{{ item.quantity }} x {{ item.price }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="text-center">
+        <p>¡Gracias por su visita!</p>
+    </div>
+</div>
+{% endblock %}

@@ -5,7 +5,7 @@
 {% endif %}
 
 {% block header %}
-  <h1>{% block title %}Listado de Productos en Stock (Excluye Bar){% endblock %}</h1>
+  <h1>{% block title %}Listado de Productos en Stock en el Bar{% endblock %}</h1>
   {% if g.user %}
     
   {% endif %}
@@ -36,7 +36,12 @@
             <td>{{prod.desc_producto}}</td>
             <td>{{prod.presentacion}}</td>
             <td>{{prod.punto_repedido}}</td>
-            <td>{{prod.existencias}}</td>
+            <td>{% if prod.existencias|int == prod.existencias %}
+                  {{ prod.existencias|int }}
+                {% else %}
+                  {{ prod.existencias|round(2) }}
+                {% endif %}
+            </td>
             <td>{{prod.control_stock}}</td>
           </tr>
         {% if not loop.last %}

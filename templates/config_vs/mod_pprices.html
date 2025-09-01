@@ -14,11 +14,13 @@
     Los productos seleccionados dejarán de visualizarse, pero podrán utilizarse en el futuro.<br>
     Presione la tecla CTRL para seleccionar múltiples productos
     <br><br>
-    <select name="id_imp" size="15" multiple>
-        <option value="" style="width: 200px;">Seleccionar productos</option>
-            {% for prod in prods_sp %}
-        <option value="{{prod.id_product}}" style="width: 400px;">{{prod.desc_product}}</option>
-            {% endfor %}
+    <select size="15" name="id_dmp" multiple>
+      <option value="" style="width: 200px;">Seleccionar productos</option>
+      {% for prod in prods_sp %}
+        <option name="id_aprp" value="{{prod.id_product}}" style="width: 200px;">{{prod.desc_product}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
     </select>
     <br>
     <input type="submit" value="Desactivar Productos">
