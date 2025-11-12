@@ -200,6 +200,26 @@ query_addocst = """
             OR LENGTH(q_inn_real) > 0;
             """
 
+# Ingreso de productos confirmados de la OC al stock del bar
+query_addocstbar = """
+            INSERT INTO bt_stock_bar (dt_io, id_product, id_warehouse, dt_expiry, q_inn, q_out, q_batch_balance)
+            SELECT
+                dt_io, id_product, id_warehouse, dt_expiry,
+                CASE
+                    WHEN fl_ok = 1 THEN q_inn
+                    ELSE q_inn_real
+                END AS q_inn,
+                0 AS q_out,
+                CASE
+                    WHEN fl_ok = 1 THEN q_inn
+                    ELSE q_inn_real
+                END AS q_batch_balance
+            FROM ttis
+            WHERE fl_ok = 1
+            AND id_warehouse = 12
+            OR LENGTH(q_inn_real) > 0;
+            """
+
 # Actualizo las salidas de depósitos por transferencias internas
 query_upd_out = """
             UPDATE bt_stock
@@ -246,6 +266,8 @@ query_jafc = """
             """
 
 
+
+
 # Ejecuto los listados de atributos para que se direccionen a las páginas dónde deben utilizarse
 @bp.route("/stock/listadd_prods")
 @login_required
@@ -289,7 +311,6 @@ def add_product():
                        (nomprod, idcate, idscate, idunit, prep),
                        )
             db.commit()
-
             if apl:
                 req_prd = db.execute('SELECT MAX(id_product) AS mxm FROM bt_product;').fetchone()[0]
                 db.execute("INSERT INTO bt_product_prices (id_product, dt_from, id_user, flag_price) VALUES (?,?,?,?)",
@@ -533,7 +554,7 @@ def enter_prods():
         orselec = request.form["seloc"]
         lphrase = ' GROUP BY 1, 2, 3, 4, 5 HAVING (IFNULL(o.fl_sok, 0) + IFNULL(o.q_real, 0)) < 1'
         db = get_db()
-        whexc = ' AND id_warehouse NOT IN (13, 14, 15, 16) ORDER BY tx_warehouse'
+        whexc = ' AND id_warehouse NOT IN (12, 13, 14, 15, 16) ORDER BY tx_warehouse'
         whs = db.execute(query_wh + whexc).fetchall()
         query_occ = query_oc + ' AND h.id_order = ' + orselec + lphrase
         ocp = db.execute(query_occ).fetchall()
@@ -572,6 +593,8 @@ def enter_wprods():
                        )
             # Inserto los productos de la temporal en la tabla de stock (bt_stock)
             db.execute(query_addocst).fetchall()
+            # Inserto los productos de la temporal en la tabla de stock del bar (bt_stock_bar)
+            db.execute(query_addocstbar).fetchall()
             # Actualizo las partidas y el stock general
             db.execute('UPDATE bt_stock SET q_out = 0 WHERE q_out IS NULL').fetchall()
             db.execute('UPDATE bt_stock SET q_stock = a.stock_av FROM (' + query_us + ') a WHERE bt_stock.id_io = a.id_io').fetchall()
@@ -807,6 +830,7 @@ def enter_transf():
                 RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
             FROM bt_stock
             WHERE id_warehouse <= 11
+            AND q_stock IS NOT NULL
             """
         end_string = ") a WHERE a.stock_det = 1 AND bt_product.id_product = a.id_product"
         run_str = (ptu + end_string + ' AND a.id_product IN (' + (', '.join(map(str, res_only_prods))) + ') ')

@@ -1,5 +1,3 @@
-# import functools
-# import os
 from flask import Blueprint, g, render_template, make_response, flash, request, url_for, redirect
 from werkzeug.exceptions import abort
 import csv
@@ -57,7 +55,8 @@ query_ls = """
                     q_stock,
                     RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
                 FROM {}
-                WHERE id_warehouse {}
+                WHERE q_stock > 0
+                AND id_warehouse {}
             ) p
             ON b.id_product = p.id_product
             WHERE b.flag_ctrl = 1
@@ -78,7 +77,8 @@ query_cons = """
                 IFNULL(SUM(CASE WHEN p.id_warehouse = 12 THEN p.q_inn END), 0) AS w12,
                 IFNULL(SUM(CASE WHEN p.id_warehouse = 13 THEN p.q_inn END), 0) AS w13,
                 IFNULL(SUM(CASE WHEN p.id_warehouse = 14 THEN p.q_inn END), 0) AS w14,
-                IFNULL(SUM(CASE WHEN p.id_warehouse = 15 THEN p.q_inn END), 0) AS w15 
+                IFNULL(SUM(CASE WHEN p.id_warehouse = 15 THEN p.q_inn END), 0) AS w15,
+                IFNULL(SUM(CASE WHEN p.id_warehouse = 16 THEN p.q_inn END), 0) AS w16
             FROM bt_product b INNER JOIN lkp_categories c
             ON b.id_category = c.id_category
             INNER JOIN lkp_subcategories s
@@ -248,6 +248,8 @@ query_prods_sp = """
                 ON b.id_unity = u.id_unity
                 WHERE p.dt_to = '2100-12-31'
                 AND p.flag_price = 1
+                AND p.nu_price_usd > 0
+                AND b.flag_ctrl = 1
                 
                 UNION
 
@@ -259,6 +261,7 @@ query_prods_sp = """
                 ON p.id_product = d.id_drink
                 WHERE p.dt_to = '2100-12-31'
                 AND p.flag_price = 1
+                AND p.nu_price_usd > 0
                 ORDER BY 2;
                 """
 
@@ -321,7 +324,7 @@ query_coll = """
                 c.id_passenger,
                 s.id_campaign,
                 m.id_trip,
-                s.tx_name||', '||s.tx_surname AS nya,
+                '('||b.nu_cabin||') '||s.tx_name||', '||s.tx_surname AS nya,
                 COUNT(c.id_ticket) AS q_ticket,
                 STRFTIME('%Y-%m-%d %H:%M', t.dt_payment) AS dt_payment,
                 p.tx_pay_method,
@@ -334,11 +337,35 @@ query_coll = """
             ON s.id_passenger = t.id_passenger
             INNER JOIN lkp_campaign m
             ON m.id_campaign = s.id_campaign
+            INNER JOIN lkp_cabins b
+            ON s.id_cabin = b.id_cabin
             WHERE c.flag_anullment = 0
             AND c.flag_payment = 1
             -- AND c.id_passenger = (?)
+            AND m.flag_vigency = 1
             GROUP BY 1, 2, 3, 4, 6, 7
             ORDER BY 4, 6
+            """
+
+query_collp = """
+            SELECT
+                m.id_trip,
+                '('||b.nu_cabin||') '||s.tx_name||', '||s.tx_surname AS nya,
+                COUNT(c.id_ticket) AS q_ticket,
+                SUM(c.nu_quantity * c.pc_unity) AS total
+            FROM bt_consumption c INNER JOIN bt_ticket_header t
+            ON c.id_ticket = t.id_ticket
+            INNER JOIN bt_passenger s
+            ON s.id_passenger = t.id_passenger
+            INNER JOIN lkp_campaign m
+            ON m.id_campaign = s.id_campaign
+            INNER JOIN lkp_cabins b
+            ON s.id_cabin = b.id_cabin
+            WHERE c.flag_anullment = 0
+            AND c.flag_payment = 0
+            AND m.flag_vigency = 1
+            GROUP BY 1, 2
+            ORDER BY 2;
             """
 
 
@@ -421,9 +448,12 @@ def export_lc():
 def export_pr():
     io = BytesIO()
     with pd.ExcelWriter(io,  engine='openpyxl') as writer:
+        ttr = 'bt_stock' # tabla a consultar
+        wh_filter = '<= 11' # almacenes involucrados
+        query = query_lsr.format(ttr, wh_filter)
         db = get_db()
-        list = pd.read_sql_query(query_lsr, db)
-        # result = pd.DataFrame(list)
+        # list = pd.read_sql_query(query_lsr, db) (ex ejecución)
+        list = pd.read_sql_query(query, db)
         pd.DataFrame(list).to_excel(writer, sheet_name='Productos a reponer', index=False)
         writer.close()
         response = make_response(io.getvalue())
@@ -446,7 +476,7 @@ def consumption():
     if request.method == "POST":
         datef = request.form["date_from"]
         datet = request.form["date_to"]
-        qparam = query_cons + ' AND p.dt_io BETWEEN (?) AND (?) GROUP BY 1, 2 ORDER BY 2, 1'
+        qparam = query_cons + ' AND DATE(p.dt_io) BETWEEN (?) AND (?) GROUP BY 1, 2 ORDER BY 2, 1'
         db = get_db()
         prd_cons = db.execute(qparam, (datef, datet),).fetchall()
         if len(prd_cons) < 1:
@@ -507,4 +537,19 @@ def collections():
     db = get_db()
     coll = db.execute(query_coll).fetchall()
     total_clt = sum(item['total'] for item in coll) if coll else 0
+    if len(coll) < 1:
+        flash('Aún no se realizaron cobranzas en este viaje.')
+        return redirect(url_for("auth.redirectlink"))
     return render_template("reports/collections.html", coll = coll, total_clt = total_clt)
+
+
+# Listado de cobranzas pendientes
+@bp.route("/collectionsp")
+@login_required
+def collectionsp():
+    db = get_db()
+    collp = db.execute(query_collp).fetchall()
+    if len(collp) < 1:
+        flash('Aún no se registraron ventas en este viaje.')
+        return redirect(url_for("auth.redirectlink"))
+    return render_template("reports/collectionsp.html", collp = collp)

@@ -2,6 +2,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import os
 
 SMTP_PASS = 'jjkc ozol vzhe xiue'
 SMTP_SERVER = 'smtp.gmail.com'
@@ -11,10 +12,11 @@ SMTP_USER = 'neostar.notifications@gmail.com'
 FROM_NAME = 'Antarpply - by Neostar'
 FROM_EMAIL = 'neostar.notifications@gmail.com'
 SUBJECT = "Did you forget your password?"
-HTML_PATH = "/Users/tatianasorroche/Desktop/ushuaia/templates/email_psw.html" 
+HTML_PATH = os.path.join(os.path.dirname(__file__), "templates", "email_psw.html")
 
 def send_mail(name,email,psw):
     try:
+        print("Intentando enviar correo de login...")
         # Lee el contenido del archivo HTML
         with open(HTML_PATH, "r", encoding="utf-8") as archivo:
             html_template = archivo.read()

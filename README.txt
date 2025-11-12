@@ -11,6 +11,12 @@ pv2@@ushuaia.com // pswdepv2 -- Usuario del Comedor
 pv3@@ushuaia.com // pswdepv3 -- Usuario del Room Service
 
 ############################# Voy dejando acá las ultimas actualizaciones con fecha #############################
+11/11
+# Instalar JWT utilizando 'pip install Flask-JWT-Extended' (siempre sin las comillas)
+# Instalar las siguientes librerías para el uso de nuestras API's:
+'pip install flask_restful flask_migrate flask_marshmallow marshmallow-sqlalchemy'
+
+
 10/07
 # Se configura la barra de navegación
 # Se eliminaron las referencias a los archivos .map en *boostrap.*

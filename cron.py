@@ -2,7 +2,6 @@ import os
 import zipfile as zp
 from datetime import datetime
 from os.path import basename
-
 from flask import Blueprint, flash, redirect, url_for, session, current_app
 from .auth import login_required
 

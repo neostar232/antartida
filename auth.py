@@ -102,6 +102,15 @@ def login():
             db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
             db.commit()
             return redirect(url_for("auth.panelb")) # --> micropanel
+        if error is None and (user['id_role'] == 4):
+            # Almacena el usuario en una nueva sesion y regresa al index
+            session.clear()
+            session['user_id'] = user['id_user']
+            session['role'] = user['id_role']
+            # Agrego el ingreso a la tabla de sesiones
+            db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
+            db.commit()
+            return redirect(url_for("auth.panelu")) # --> micropanel
         if error is None and (user['id_role'] == 5):
             # Almacena el usuario en una nueva sesion y regresa al index
             session.clear()
@@ -111,6 +120,15 @@ def login():
             db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
             db.commit()
             return redirect(url_for("auth.panelpv")) # --> micropanel
+        if error is None and (user['id_role'] == 6):
+            # Almacena el usuario en una nueva sesion y regresa al index
+            session.clear()
+            session['user_id'] = user['id_user']
+            session['role'] = user['id_role']
+            # Agrego el ingreso a la tabla de sesiones
+            db.execute("INSERT INTO bt_sessions(id_user, dt_session_in) VALUES (?,?)", (session['user_id'], dt.datetime.now()))
+            db.commit()
+            return redirect(url_for("auth.panelpsg")) # --> app de pasajeros
         flash(error)
     return render_template("auth/login.html")
 
@@ -124,8 +142,12 @@ def redirectlink():
             return redirect(url_for("auth.panel"))
         if error is None and rolx == 2:
             return redirect(url_for("auth.panelb"))
+        if error is None and rolx == 4:
+            return redirect(url_for("auth.panelu"))
         if error is None and rolx == 5:
             return redirect(url_for("auth.panelpv"))
+        if error is None and rolx == 6:
+            return redirect(url_for("auth_passengers.menu"))
 
 
 @bp.route("/logout")
@@ -248,11 +270,21 @@ def panel():
 def panelb():
     return render_template("auth/panelb.html")
 
-
-@bp.route("/panelpv")
+@bp.route("/panelv")
 @login_required
 def panelpv():
     return render_template("auth/panelpv.html")
+
+
+@bp.route("/panelu")
+@login_required
+def panelu():
+    return render_template("auth/panelu.html")
+
+@bp.route("/passengers/menu")
+def panelpsg():
+    username = session.get("username", "")
+    return render_template("passengers/menu_passenger.html", username=username)
 
 
 # Acceso a las solapas de la barra de Navegación

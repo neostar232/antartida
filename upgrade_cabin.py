@@ -21,7 +21,15 @@ categorias_ordenadas = [
 def upgrade_cabin():
     db = get_db()
     # Obtener lista de pasajeros y cabinas para los selects
-    passengers = db.execute("SELECT id_passenger, tx_name || ' ' || tx_surname AS name FROM bt_passenger").fetchall()
+    # passengers = db.execute("SELECT id_passenger, tx_name || ' ' || tx_surname AS name FROM bt_passenger").fetchall()
+    passengers = db.execute("""SELECT
+                                    p.id_passenger,
+                                    p.tx_name || ' ' || p.tx_surname AS name
+                                FROM bt_passenger p INNER JOIN bt_cabin_occupation o
+                                ON p.id_passenger = o.id_passenger
+                                INNER JOIN lkp_campaign m
+                                ON m.id_campaign = o.id_campaign
+                                WHERE m.flag_vigency = 1""").fetchall()
     cabins = db.execute("SELECT id_cabin, nu_cabin || ' - ' || tx_cabin_type AS cabin FROM lkp_cabins").fetchall()
 
     if request.method == "POST":
@@ -29,11 +37,21 @@ def upgrade_cabin():
         cabina_actual = request.form["cabina_actual"]
         cabina_upgrade = request.form["cabina_upgrade"]
         tipo_upgrade = request.form.get("tipo_upgrade", "normal")
-        precio = 0 if tipo_upgrade == "critico" else request.form["precio"]
+        if tipo_upgrade == "critico":
+            precio = 0
+        else:
+            # Si no es crítico, obtenemos el valor del formulario y lo convertimos a float (o int, si siempre es un número entero)
+            try:
+                # Usamos .get() para evitar un error si el campo no se enviara
+                precio_str = request.form.get("precio", "0") 
+                # Convertir a float por si hay decimales, o int si solo manejas enteros
+                precio = float(precio_str) 
+            except ValueError:
+                # Manejo de error si el valor no es un número (poco probable con input type="number")
+                precio = 0 
+                flash("El precio no es un valor numérico válido.")
         fecha_upgrade = request.form["fecha_upgrade"]
-
         print(id_passenger, cabina_actual, cabina_upgrade, tipo_upgrade, precio, fecha_upgrade)
-
         # Insertar en la tabla de movimientos
         db.execute(
             "INSERT INTO mov_cabin_upgrades (passenger_id, from_cabin_id, to_cabin_id, upgrade_type, price, date) VALUES (?, ?, ?, ?, ?, ?)",
@@ -46,13 +64,16 @@ def upgrade_cabin():
             "UPDATE bt_cabin_occupation SET id_cabin = ? WHERE id_passenger = ? AND id_campaign = ?",
             (cabina_upgrade, id_passenger, current_campaign)
         )
+        # Agregado MS 20250907
+        db.execute("UPDATE bt_passenger SET id_cabin = ? WHERE id_passenger = ? AND id_campaign = ?",
+                   (cabina_upgrade, id_passenger, current_campaign)
+                   )
         db.commit()
         print("Actualizado en bt_cabin_occupation")
         #Añado el consumo en la bt_consumption e imprimo ticket
         add_consumption(id_passenger, precio)
         flash("Upgrade de cabina registrado correctamente.")
         return redirect(url_for("auth.redirectlink"))
-
     return render_template("passengers/upgrade_cabin.html", passengers=passengers, cabins=cabins)
 
 def add_consumption(id_passenger, price):
@@ -165,13 +186,16 @@ def get_cabina_info():
 
     libres_list = []
     for r in libres:
-        print("r: ", r)
-        print("cabina_actual_type: ", cabina_actual_type)
+        #print("r: ", r)
+        #print("cabina_actual_type: ", cabina_actual_type)
         tipo_cabina = r["tipo"]
-        print("tipo_cabina: ", tipo_cabina)
+        #print("tipo_cabina: ", tipo_cabina)
+        # Excluir explícitamente la misma cabina en la que está el pasajero
+        if cabina_actual_id is not None and r["id"] == cabina_actual_id:
+            continue
         idx_cabina = categorias_ordenadas.index(tipo_cabina) if tipo_cabina in categorias_ordenadas else 0
-        print("idx_cabina: ", idx_cabina)
-        print("idx_actual: ", idx_actual)
+        #print("idx_cabina: ", idx_cabina)
+        #print("idx_actual: ", idx_actual)
         if tipo_upgrade == "critico" or idx_cabina >= idx_actual:
             libres_list.append({
                 "id": r["id"],
@@ -180,7 +204,7 @@ def get_cabina_info():
                 "capacidad_total": r["capacidad_total"]
             })
 
-    print(libres_list)
+    #print(libres_list)
 
     return jsonify({
         "cabina_actual_id": cabina_actual_id,

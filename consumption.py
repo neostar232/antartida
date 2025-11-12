@@ -1,10 +1,12 @@
 import functools
-from flask import Blueprint, flash, g, redirect, render_template, request, url_for, session, Response
-from datetime import datetime
+from flask import Blueprint, flash, g, redirect, render_template, request, url_for, session, Response, current_app
+from datetime import datetime, timedelta
 import pytz as tz
 from .auth import login_required
 from .db import get_db
 import pandas as pd
+import os
+from os.path import basename
 
 bp = Blueprint("consumption", __name__)
 
@@ -38,6 +40,7 @@ query_svcprd = """
             WHERE p.dt_to = '2100-12-31'
             AND p.flag_price = 1
             AND p.nu_price_usd > 0
+            AND b.flag_ctrl = 1
                             
             UNION             
 
@@ -57,7 +60,7 @@ query_svcprd = """
             """
 
 
-# Relacion Cabina-Pasajero
+# Relacion Cabina-Pasajero-Trip vigente
 query_occ_pass = """
             SELECT
                 co.id_cabin,
@@ -65,10 +68,16 @@ query_occ_pass = """
                 ps.tx_name||' '||ps.tx_surname AS passenger_name
             FROM bt_cabin_occupation co INNER JOIN bt_passenger ps
             ON co.id_passenger = ps.id_passenger
-            INNER JOIN lkp_campaign cp -- Se agrega para filtrar por campaña vigente
+            INNER JOIN -- lkp_campaign cp -- Se agrega para filtrar por campaña vigente
+            (SELECT
+                *,
+                RANK() OVER (PARTITION BY id_campaign) AS rn
+            FROM lkp_campaign
+            WHERE flag_vigency = 1
+            LIMIT 1) cp
             ON cp.id_campaign = co.id_campaign
             WHERE 1 = 1
-            AND cp.flag_vigency = 1
+            --AND cp.flag_vigency = 1
             AND co.id_cabin = ?
             ;
             """
@@ -299,14 +308,29 @@ def enter_shop():
         psgr = request.form["passenger"]
         qty = request.form["qtty"]
         oper = session.get("user_id")
+        idwe = 16  # Almacén de Consumos a Pasajero
+        zero = 0
         db = get_db()
         db.execute("INSERT INTO bt_ticket_header (dt_ticket, id_passenger, id_user) VALUES (?,?,?)",
                    (dtoday, psgr, oper),
                     )
         db.commit()
         req_tkt = db.execute('SELECT MAX(id_ticket) AS mxm FROM bt_ticket_header;').fetchone()[0]
-        db.execute("INSERT INTO bt_consumption (id_ticket, id_product, id_passenger, dt_consumption, nu_quantity, pc_unity) VALUES (?,?,?,?,?,?)",
-                   (req_tkt, prd, psgr, dtoday, qty, prc),
+        db.execute("INSERT INTO bt_consumption (id_ticket, id_product, id_passenger, dt_consumption, nu_quantity, pc_unity, id_user) VALUES (?,?,?,?,?,?,?)",
+                   (req_tkt, prd, psgr, dtoday, qty, prc, oper),
+                   )
+        db.execute("INSERT INTO bt_stock (dt_io, id_product, id_warehouse, q_inn, q_out, q_batch_balance) VALUES (?,?,?,?,?,?)",
+                   (dtoday, prd, idwe, qty, zero, qty),
+                   )
+        # Busco el primer registro donde se ingresaron los productos al stock
+        mid = db.execute('SELECT MIN(id_io) AS mnm FROM bt_stock WHERE id_product = (?) AND q_stock > 0', (prd,)).fetchone()[0]
+        db.execute("UPDATE bt_stock SET q_out = q_out + ?, q_batch_balance = q_batch_balance - ?, q_stock = q_stock - ? WHERE id_product = ? AND id_io = ?",
+                   (qty, qty, qty, prd, mid)
+                   )
+        # Busco el stock del registro más antiguo
+        qsi = db.execute('SELECT q_stock FROM bt_stock WHERE id_io = (?)', (mid,)).fetchone()[0]
+        db.execute("UPDATE bt_product SET dt_last_update = ?, q_stock = ? WHERE id_product = ?",
+                   (dtoday, qsi, prd)
                    )
         db.commit()
     flash('Se envió a la cuenta del pasajero, la compra realizada.')
@@ -315,19 +339,21 @@ def enter_shop():
 
 # Obtengo los pasajeros por cabina
 @bp.route("/consumption/get_passengers_htmx", methods=["POST"])
-@login_required
 def get_passengers_htmx():
-    cabin_id = request.form.get("cabin")  # HTMX envía los datos del formulario
-    show_quantity_str = request.form.get('show_quantity', 'false')
-    show_quantity = show_quantity_str.lower() == 'true'
-    id_category = request.form.get('id_cat', type=int)
+    cabin_id = request.form.get("cabin", type=int)
+    id_category_str = request.form.get('id_cat', '')
+    if id_category_str.startswith('[') and id_category_str.endswith(']'):
+        id_category_str = id_category_str.strip('[]').replace("'", "")
+    id_category = [int(x.strip()) for x in id_category_str.split(',') if x.strip()]
     tbn_value = request.form.get('tbn', type=int)
+    template_name = "consumption/_passenger_options.html"
+    if id_category and all(cat < 15 for cat in id_category):
+        template_name = "consumption/_passenger_optionsf.html"
     if cabin_id:
         db = get_db()
         psg = db.execute(query_occ_pass, (cabin_id,)).fetchall()
-        return render_template("consumption/_passenger_options.html",
+        return render_template(template_name,
                                passengers = psg,
-                               show_quantity = show_quantity,
                                id_category=id_category,
                                tbn=tbn_value)
     return "" # Devuelve una cadena vacía si no hay cabin_id
@@ -337,53 +363,60 @@ def get_passengers_htmx():
 @bp.route('/consumption/clbar', methods=["GET", "POST"])
 @login_required
 def clbar():
-    id_category = request.args.get('id_cat', type=int)
-    db = get_db()
-    cabs = db.execute(query_occ_cabins).fetchall()
-    if id_category == 10:
+    # id_category = request.args.get('id_cat', type=int)
+    id_category_str = request.args.getlist('id_cat')
+    id_category_int = [int(id) for id in id_category_str]
+    print(f"Los IDs recibidos son: {id_category_int}")
+    # Establece valores por defecto
+    template_name = "consumption/bar.html" # Plantilla por defecto
+    tbn_value = 2 # Valor por defecto
+    if 10 in id_category_int:
         template_name = "consumption/clothes.html"
         tbn_value = 1
-    elif id_category == 14:
+    elif 14 in id_category_int:
         template_name = "consumption/merchandising.html"
         tbn_value = 1
-    elif id_category == 1:
-        template_name = "consumption/bar.html"
-        tbn_value = 2
-    else:
-        template_name = "consumption/bar.html"
-        tbn_value = 2
-    return render_template(template_name, cabs = cabs, id_category=id_category, tbn=tbn_value)
+    db = get_db()
+    cabs = db.execute(query_occ_cabins).fetchall()
+    return render_template(template_name, cabs = cabs, id_category=id_category_int, tbn=tbn_value)
 
 
 # Obtengo los productos - ver variables con condiciones
 @bp.route("/consumption/get_products_htmx", methods=["GET", "POST"])
 @login_required
 def get_products_htmx():
-    id_category = request.args.get('id_cat', type=int)
+    # Usa request.args para GET (llamada desde hx-get de la plantilla de pasajeros)
+    id_category_str = request.args.get('id_cat', '')
+    id_category = [int(x) for x in id_category_str.split(',') if x.strip()]
     tbn_value = request.args.get('tbn', type=int)
-    if tbn_value == 1:
-        tts = 'bt_stock'
+    if not id_category:
+        prods = []
     else:
-        tts = 'bt_stock_bar'
-    db = get_db()
-    sub_query = f""" INNER JOIN
-                (
-                SELECT id_product, q_stock FROM
-                (
-                SELECT
-                    id_product,
-                    q_stock,
-                    RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
-                FROM {tts}
-                WHERE id_warehouse <> 16
-                AND q_stock > 0
-                AND q_stock IS NOT NULL
-                ) WHERE stock_det = 1
-                )b
-                ON a.id_product = b.id_product"""
-    scat_select = f' WHERE id_category = {id_category} AND id_subcategory NOT IN (93, 97)'
-    sort = ' ORDER BY 3;'
-    prods = db.execute(query_svcprd + sub_query + scat_select + sort).fetchall()
+        ids_placeholders = ', '.join(['?'] * len(id_category))
+        if tbn_value == 1:
+            tts = 'bt_stock'
+        else:
+            tts = 'bt_stock_bar'
+        db = get_db()
+        sub_query = f""" INNER JOIN
+                    (
+                    SELECT id_product, q_stock FROM
+                    (
+                    SELECT
+                        id_product,
+                        q_stock,
+                        RANK() OVER (PARTITION BY id_product ORDER BY id_io DESC) AS stock_det
+                    FROM {tts}
+                    WHERE id_warehouse <> 16
+                    AND q_stock > 0
+                    AND q_stock IS NOT NULL
+                    ) WHERE stock_det = 1
+                    )b
+                    ON a.id_product = b.id_product"""
+        scat_select = f' WHERE id_category IN ({ids_placeholders}) AND id_subcategory NOT IN (93, 97)'
+        sort = ' ORDER BY 3;'
+        # Pasa los valores como un segundo argumento para una consulta segura
+        prods = db.execute(query_svcprd + sub_query + scat_select + sort, tuple(id_category)).fetchall()
     return render_template("consumption/_products_options.html", prods = prods, tbn=tbn_value)
 
 
@@ -707,7 +740,8 @@ def process_order():
             print("DEBUG: Las consultas de la base de datos se ejecutaron correctamente.")
             print(f"DEBUG: El valor de req_tkt es: {req_tkt} y su tipo es {type(req_tkt)}")
             print(f"DEBUG: Intentando renderizar print_module/print_ticket.html con ticket ID: {req_tkt}")
-            return render_template("print_module/print_ticket.html", id_ticket=req_tkt)
+            # return render_template("print_module/print_ticket.html", id_ticket=req_tkt)
+            return redirect(url_for('print_module.print_ticket', id_ticket=req_tkt))
             
         except Exception as e:
             db.rollback()
@@ -724,7 +758,7 @@ def info_passenger():
     db = get_db()
     pcons = db.execute(query_ocp).fetchall()
     if not pcons:
-        flash('Aún no hay pasajeros con consumos registrados para este viaje.')
+        flash('Aún no hay pasajeros registrados para este viaje.')
         return redirect(url_for("auth.redirectlink"))
     else:
         if idtype == 1:
@@ -826,6 +860,9 @@ def close_account_sel(id_passenger):
     # consumptions = db.execute(geting_data).fetchall()
     pm = db.execute('SELECT * FROM lkp_pay_methods ORDER BY 1').fetchall()
     total_general = sum(item['total'] for item in consumptions) if consumptions else 0
+    if total_general < 0:
+        flash('El pasajero no tiene deuda por cobrar.')
+        return redirect(url_for('auth.redirectlink'))
     return render_template("consumption/close_account_psngr.html",
                            consumptions = consumptions,
                            total_general = total_general,
@@ -895,6 +932,8 @@ def drink_ing():
 def add_drink():
     if request.method == "POST":
         dtoday = datetime.now(tz.timezone('America/Argentina/Buenos_Aires')).replace(tzinfo=None)
+        delta_days = timedelta(days=180)
+        ndtoday = (dtoday + delta_days)
         ndr = request.form['n_dr']
         pr1 = request.form['id_dpr1']
         qi1 = request.form['q_i1']
@@ -906,6 +945,8 @@ def add_drink():
         qi4 = request.form['q_i4']
         price = request.form['nu_pr']
         oper = session.get("user_id")
+        idwh = 12
+        qtys = 100
         # Manejo de nulos
         pr2 = None if not pr2 or pr2 == "Seleccionar producto" else pr2
         qi2 = None if not qi2 else qi2
@@ -923,5 +964,71 @@ def add_drink():
                            (req_drk, price, dtoday, oper),
                            )
         db.commit()
+
+        db.execute("INSERT INTO bt_stock_bar (dt_io, id_product, id_warehouse, dt_expiry, q_inn, q_batch_balance, q_stock) VALUES (?,?,?,?,?,?,?)",
+                           (dtoday, req_drk, idwh, ndtoday, qtys, qtys, qtys),
+                           )
+        db.commit()
         flash('El trago y su respectivo precio fueron existosamente dados de alta')
         return redirect(url_for("auth.redirectlink"))
+    
+
+# Alta de Menu (selecciona archivo)
+@bp.route("/consumption/add_menu_file", methods=["GET", "POST"])
+@login_required
+def add_menu_file():
+    return render_template("consumption/add_menu_ff.html")
+
+
+# Alta de archivo de actividades (selecciona archivo)
+@bp.route("/consumption/add_activities_file", methods=["GET", "POST"])
+@login_required
+def add_actvts_file():
+    return render_template("consumption/add_actvts_ff.html")
+
+
+# Alta de Menu y Actividades (guarda y cambia el nombre del archivo)
+@bp.route("/consumption/add_information", methods=["GET", "POST"])
+@login_required
+def add_information():
+    pn = datetime.today().strftime('%Y%m%d')
+    tyfi = request.args.get('ft')
+    if tyfi == '1':
+        fixed_filename = 'menu.pdf'
+    elif tyfi == '2':
+        fixed_filename = 'activities.pdf'
+    else:
+        # Manejar caso de parámetro faltante o inválido
+        flash('Error: Tipo de archivo (tf) no especificado o inválido.')
+        return redirect(url_for("auth.redirectlink"))
+    if request.method == "POST":
+        if "file" not in request.files:
+            flash('No se encontró el archivo en la solicitud.')
+            return redirect(url_for("auth.redirectlink"))
+        file = request.files["file"]
+        if file.filename == '':
+            flash('No se seleccionó ningún archivo.')
+            return redirect(url_for("auth.redirectlink"))
+        if file and file.filename.endswith('.pdf'):
+            root = current_app.root_path
+            directory = 'upl_files'
+            upload_folder = os.path.join(root, directory)
+            original_filename = file.filename
+            name, ext = os.path.splitext(original_filename)
+            cleaned_name = name.replace(" ", "_")
+            historical_filename = f"{pn}_{cleaned_name}{ext}"
+            historical_path = os.path.join(upload_folder, historical_filename)
+            fixed_path = os.path.join(upload_folder, fixed_filename)
+            file.seek(0)
+            try:
+                file.save(historical_path)
+                file.seek(0)
+                file.save(fixed_path)
+                flash(f'Archivo subido correctamente. Se guardaron las copias: "{historical_filename}" y "{fixed_filename}".')
+            except Exception as e:
+                flash(f'Ocurrió un error al guardar los archivos: {e}')
+        else:
+            flash('Por favor, suba un archivo PDF válido.')
+    else:
+        flash('Método no permitido o acceso directo a la URL de subida.')
+    return redirect(url_for("auth.redirectlink"))

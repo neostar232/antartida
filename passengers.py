@@ -6,6 +6,7 @@ from .auth import login_required
 from .db import get_db
 import os
 from os.path import basename
+from flask_weasyprint import HTML, render_pdf
 import pandas as pd
 import re
 
@@ -161,7 +162,7 @@ def addr_psngr_ff():
             # root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../ushuaia"))
             root = current_app.root_path
             directory = 'upl_files'
-            filename = os.path.join(root, 'static', directory, file.filename)
+            filename = os.path.join(root, directory, file.filename)
             file.save(filename)
             # Hasta acá se sube el archivo CSV para agregar los pasajeros.En adelante, se procesa el archivo CSV
             df = pd.read_csv(filename, encoding='utf-8', sep=';')
@@ -186,8 +187,13 @@ def addr_psngr_ff():
                         'IDC2':'id_cabin',
                         'Cabina Asignada':'cabtodel'}
             df.rename(columns=column_map, inplace=True) # aplico cambios de nombres de columnas
+            # Convierte los correos a minúsculas
+            df['tx_email'] = df['tx_email'].str.lower()
             # Convierto la columna de fecha a formato datetime
             df['dt_birth'] = pd.to_datetime(df['dt_birth'], format='%d/%m/%Y', errors='coerce')
+            # Aplica formato de letra capital a nombres y apellidos
+            df['tx_name'] = df['tx_name'].str.title()
+            df['tx_surname'] = df['tx_surname'].str.title()
             # Elimino filas con fechas no válidas
             df = df.dropna(subset=['dt_birth'])
             # Cambio tipo de dato
@@ -242,10 +248,225 @@ def disable_trip():
     if request.method == "POST":
         trip_id = request.form["id_trp"]
         db = get_db()
-        # Actualizo la vigencia del trip
-        db.execute("UPDATE lkp_campaign SET flag_vigency = 0 WHERE id_campaign = ?", (trip_id))
-        db.commit()
-        flash('Recorrido deshabilitado. Ya no podrá afectar a los pasajeros del mismo.')
+        verdeb = f"""
+            SELECT
+                COUNT(DISTINCT c.id_passenger) AS upp
+            FROM bt_consumption c INNER JOIN bt_passenger p
+            ON c.id_passenger = p.id_passenger
+            INNER JOIN bt_cabin_occupation o
+            ON p.id_passenger = o.id_passenger
+            INNER JOIN lkp_campaign g
+            ON o.id_campaign = g.id_campaign
+            WHERE c.flag_payment = 0
+            AND c.flag_anullment = 0
+            AND g.id_campaign = (?);
+            """
+        qdebts = db.execute(verdeb, (trip_id,)).fetchone()
+        # Obtengo el valor de upp - unpaid passengers
+        debt_count = qdebts['upp']
+        # Verifico si hay pasajeros con deudas pendientes
+        if debt_count > 0:
+            # Si hay deudas, muestro mensaje con el número de deudores
+            flash(f'No se puede deshabilitar el recorrido. Aún existen {debt_count} deudas pendientes de pago.')
+        else:
+            # Si no hay deudas, actualizo la vigencia del viaje
+            db.execute("UPDATE lkp_campaign SET flag_vigency = 0 WHERE id_campaign = ?", (trip_id,))
+            db.commit()
+            flash('Recorrido deshabilitado. Ya no podrá afectar a los pasajeros del mismo.')
     else:
+        # Mensaje por default si la solicitud no es POST
         flash('Recorrido no deshabilitado. Por favor, revisar el recorrido.')
-    return redirect(url_for("auth.redirectlink")) 
+    return redirect(url_for("auth.redirectlink"))
+
+
+# Genero Listado de pasajeros
+@bp.route("/passengers/psg_list", methods=["GET", "POST"])
+@login_required
+def psg_list():
+    db = get_db()
+    rec_iti = """
+            SELECT
+                c.id_campaign,
+                c.id_trip ||' - '|| r.tx_route AS tx_iti
+            FROM lkp_campaign c INNER JOIN lkp_routes r
+            ON c.id_route = r.id_route
+            ORDER BY 1;
+            """
+    ique = db.execute(rec_iti).fetchall()
+    if not ique:
+        flash('Aún no recorridos cargados para este período.')
+        return redirect(url_for("auth.redirectlink"))
+    else:
+        return render_template("passengers/psg_list.html", ique = ique)
+
+
+query_ptrip = """
+        SELECT
+            p.tx_name||' '||p.tx_surname AS tx_name,
+            p.tx_identification_type,
+            p.nu_identification,
+            LOWER(p.tx_email) AS email,
+            a.nu_cabin,
+            a.tx_cabin_type,
+            p.id_campaign
+        FROM bt_passenger p INNER JOIN lkp_campaign c
+        ON p.id_campaign = c.id_campaign
+        INNER JOIN lkp_routes r
+        ON c.id_route = r.id_route
+        INNER JOIN lkp_cabins a
+        ON p.id_cabin = a.id_cabin
+        WHERE p.id_campaign = (?)
+        ORDER BY 1"""
+
+
+
+# Obtengo los pasajeros del trip seleccionado
+@bp.route("/passengers/get_passenger_htmx", methods=["GET"])
+@login_required
+def get_passenger_htmx():
+    db = get_db()
+    id_camp = request.args.get('id_campaign')
+    # Mensaje que se muestra antes de seleccionar un pasajero
+    if not id_camp:
+        return "<p>Seleccionar itinerario para visualizar pasajero.</p>"
+    get_list = db.execute(query_ptrip, (id_camp,)).fetchall()
+    return render_template("passengers/_cons_psg_list.html", get_list = get_list)
+
+
+
+
+query_svcprd = """
+        SELECT
+            a.id_product_price,
+            a.id_product,
+            a.producto,
+            a.nu_price_usd,
+            a.id_subcategory,
+            a.id_category
+        FROM
+        (
+            SELECT
+                p.id_product_price,
+                p.id_product,
+                s.tx_subcategory ||' - '|| b.tx_product|| ' x '|| u.tx_unity AS producto,
+                p.nu_price_usd,
+                s.id_subcategory,
+                s.id_category
+            FROM bt_product_prices p INNER JOIN bt_product b
+            ON p.id_product = b.id_product
+            INNER JOIN lkp_categories c
+            ON b.id_category = c.id_category
+            INNER JOIN lkp_subcategories s
+            ON b.id_subcategory = s.id_subcategory
+            INNER JOIN lkp_units u
+            ON b.id_unity = u.id_unity
+            WHERE p.dt_to = '2100-12-31'
+            AND p.flag_price = 1
+            AND p.nu_price_usd > 0
+            AND b.flag_ctrl = 1
+
+            UNION ALL
+
+            SELECT
+                p.id_product_price,
+                p.id_product,
+                'Tragos'||' - '|| d.tx_drink AS producto,
+                p.nu_price_usd,
+                1000 AS id_subcategory,
+                1 AS id_category
+            FROM bt_product_prices p INNER JOIN lkp_drinks d
+            ON p.id_product = d.id_drink
+            WHERE p.dt_to = '2100-12-31'
+            AND p.flag_price = 1
+            AND p.nu_price_usd > 0
+            ) a
+            """
+
+
+# Mapeo de IDs de subcategorías a sus nombres
+subcategory_names = {
+    '97': 'Laundry Service',
+    '93': 'Internet Service'
+}
+
+# Mapeo de IDs de categorías a sus nombres
+category_names = {
+    '1': 'Bar & Drinks',
+    '10': 'Clothes',
+    '11': 'Books',
+    '13': 'Ushuaia Ship Products',
+    '14': 'Ushuaia Ship Products'
+}
+
+# Listado General de Precios de Productos y Servicios
+@bp.route("/lista-precios")
+def general_lp():
+    db = get_db()
+    # Función auxiliar para limpiar y obtener IDs
+    def get_cleaned_ids(param_name):
+        param_values = request.args.getlist(param_name)  
+        cleaned_ids = set()
+        for param_value in param_values:
+            if param_value:
+                cleaned = param_value.strip().replace('[', '').replace(']', '')
+                ids_from_string = (id_str.strip() for id_str in cleaned.split(',') if id_str.strip())
+                cleaned_ids.update(ids_from_string)
+                
+        return list(cleaned_ids)
+    
+    ids_list = []
+    where_clause_column = ''
+    name_map = {}
+    # Subcategorías (ids)
+    ids_list = get_cleaned_ids('ids')
+    if ids_list:
+        where_clause_column = 'a.id_subcategory'
+        name_map = subcategory_names
+    else:
+        # Categorías (idc)
+        ids_list = get_cleaned_ids('idc')
+        if ids_list:
+            where_clause_column = 'a.id_category'
+            name_map = category_names
+        else:
+            # TODAS LAS CATEGORÍAS
+            ids_list = list(category_names.keys()) 
+            where_clause_column = 'a.id_category'
+            name_map = category_names
+
+    consolidated_ids = {}
+    for id in ids_list:
+        # Obtengo el nombre del grupo según el mapeo actual (category_names o subcategory_names)
+        group_name = name_map.get(id, f"ID {id} (Nombre Desconocido)")
+        # Agrupo los IDs bajo el mismo nombre (ej. '13' y '14' bajo 'Ushuaia Ship Products')
+        if group_name not in consolidated_ids:
+            consolidated_ids[group_name] = []
+        consolidated_ids[group_name].append(id)
+
+
+    grouped_lists = []
+    # Itera sobre cada ID y genera la lista
+    for group_name, ids_to_query in consolidated_ids.items():
+        # Construyo la cláusula WHERE única para todos los IDs de este grupo
+        id_list_str = ', '.join(f"'{id}'" for id in ids_to_query)
+        where_clause = f"{where_clause_column} IN ({id_list_str})"
+        # Lógica de Categorías y Casos Especiales
+        if where_clause_column == 'a.id_category':
+            # Exclusión global de servicios
+            exclude_clause = "a.id_subcategory NOT IN ('93', '97')"
+            # Caso especial para 'Bar & Drinks' (id_category = 1)
+            if '1' in ids_to_query:
+                # Incluyo 'Tragos' (id_subcategory = 1000)
+                where_clause = f"({where_clause}) OR (a.id_subcategory = 1000)"
+            where_clause = f"({where_clause}) AND {exclude_clause}"
+        # Ejecuto la consulta final
+        query = f'{query_svcprd} WHERE {where_clause} ORDER BY 3;'
+        prods = db.execute(query).fetchall()
+        # Almaceno el resultado agrupado
+        if prods: 
+            grouped_lists.append({
+                'name': group_name,
+                'products': prods
+            })
+    html = render_template('passengers/price_list_general.html', grouped_lists=grouped_lists)
+    return render_pdf(HTML(string=html))
