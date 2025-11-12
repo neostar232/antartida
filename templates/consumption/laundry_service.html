@@ -37,31 +37,30 @@
         <select id="passenger" name="passenger" disabled>
             <option name="passenger" value="">Seleccionar Pasajero</option>
         </select>
-    <label for="passenger">Cantidad:</label>
-        <input id="cantidad" name="qtty" value="" required style="width: 100px;" disabled>
+        <label for="cantidad">Cantidad:</label>
+        <input type="number" id="cantidad" name="qtty" value="" required style="width: 100px;" disabled>
     </div>
-
-        <script>
-            document.addEventListener('htmx:after-swap', function(event) {
-                // Verificar si el evento ocurrió en el contenedor de pasajeros
-                if (event.target.id === 'passenger-container') {
-                    const passengerSelect = document.getElementById('passenger');
-                    const cantidadInput = document.getElementById('cantidad'); // Cambiamos el ID a 'cantidad'
-        
-                    // Si el select de pasajeros ya no está deshabilitado, habilitar el input de cantidad
-                    if (passengerSelect && !passengerSelect.disabled) {
-                        cantidadInput.disabled = false;
-                    } else {
-                        cantidadInput.disabled = true; // También podrías deshabilitarlo si el select se vacía o deshabilita
-                    }
-                }
-            });
-        </script>
-    <br><br>
+    <br>
+    <br>
     <input type="submit" value="Confirmar selección y asignar servicio">
   </form>
 
-  
-
   <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+  <script>
+    // Usa delegación de eventos en el contenedor de pasajeros
+    document.getElementById('passenger-container').addEventListener('change', function(event) {
+        // Verifica si el evento fue disparado por el select de pasajero
+        if (event.target.id === 'passenger') {
+            const cantidadInput = document.getElementById('cantidad');
+            
+            // Habilita/deshabilita el campo de cantidad según la selección
+            if (event.target.value !== "") {
+                cantidadInput.disabled = false;
+            } else {
+                cantidadInput.disabled = true;
+            }
+        }
+    });
+  </script>
 {% endblock %}

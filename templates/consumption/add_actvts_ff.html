@@ -1,0 +1,21 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Ingreso de Archivo de Actividades{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+    <form action="{{ url_for('consumption.add_information', ft=2) }}" method = "post" enctype="multipart/form-data"> 
+        <label for="sefi">Seleccione archivo con las actividades:</label>
+        <br>
+        <input type="file" name="file" />  
+        <input type = "submit" value="Subir Archivo">  
+    </form> 
+
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

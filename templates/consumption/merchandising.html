@@ -13,17 +13,22 @@
     hx-target="#order-summary-container"
     hx-post="{{ url_for('consumption.process_product_selection') }}"
     hx-swap="innerHTML">
+        {# Estos campos ocultos aseguran que el valor 'tbn' y la lista de IDs estén disponibles para el formulario HTMX #}
         <input type="hidden" name="tbn" value="{{ tbn }}">
+        <input type="hidden" name="id_cat" value="{{ id_category|join(',') }}">
+
         <label for="cabin">Cabina:</label>
         <select id="cabin" name="cabin"
+                {# La solicitud HTMX usa POST para enviar datos de forma segura #}
                 hx-post="{{ url_for('consumption.get_passengers_htmx') }}"
                 hx-trigger="change"
                 hx-target="#passenger-container"
                 hx-swap="innerHTML"
-                hx-vals='{"show_quantity": "false", "id_cat": "{{ id_category }}"}'>
+                {# hx-include envía los valores de los campos por su atributo 'name' #}
+                hx-include="[name='cabin'], [name='id_cat'], [name='tbn']">
             <option value="">Seleccionar cabina</option>
             {% for cabin in cabs %}
-                <option name="id_cabin" value="{{ cabin.id_cabin }}">{{ cabin.tx_cabin_desc }}</option>
+                <option value="{{ cabin.id_cabin }}">{{ cabin.tx_cabin_desc }}</option>
             {% endfor %}
         </select>
 

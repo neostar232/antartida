@@ -22,7 +22,9 @@
                             {{item.id_ticket}}
                         </a>
                     </td>
-                    <td>{{item.status}}</td>
+                    <td style="{% if item.status == 'P' %}color: red; font-weight: bold;{% endif %}">
+                        <b>{{item.status}}</b>
+                    </td>
                     <td>{{item.fc}}</td>
                     <td>{{item.producto}}</td>
                     <td>{{item.nu_quantity}}</td>
