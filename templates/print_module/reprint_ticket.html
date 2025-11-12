@@ -5,13 +5,13 @@
 {% endif %}
 
 {% block header %}
-  <h1>{% block title %}Confirmación de Venta e Impresión{% endblock %}</h1>
+  <h1>{% block title %}Rempresión de Ticket{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
 
     <div class="container text-center">
-        <h1 class="text-2xl font-extrabold mb-4 text-gray-900">Imprimir Ticket #{{ ticket.numero_ticket }}</h1>
+        <h1 class="text-2xl font-extrabold mb-4 text-gray-900">(Re)Imprimir Ticket #{{ ticket.numero_ticket }}</h1>
         
         <div class="ticket-info">
             <!-- <h2 class="text-gray-900 font-bold mb-2">Ticket #{{ ticket.numero_ticket }}</h2> -->
