@@ -12,10 +12,10 @@
   <br>
   <form method="post" action="{{ url_for('passengers.disable_trip') }}">
     <label for="tx_et">Seleccione Recorrido a deshabilitar</label>
-    <select name="id_trp">
-      <option value="" style="width: 200px;">Seleccionar recorrido</option>
+    <select name="id_trp" class="short-select">
+      <option value="">Seleccionar recorrido</option>
       {% for trip in entrips %}
-        <option name="id_trp" value="{{trip.id_campaign}}" style="width: 200px;">{{trip.itinerary}}</option>
+        <option name="id_trp" value="{{trip.id_campaign}}">{{trip.itinerary}}</option>
       {% endfor %}
     </select>
     <br>

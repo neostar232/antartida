@@ -21,7 +21,17 @@
         {% for row in results %}
           <div class="bg-gray-100 p-4 rounded-lg">
             <p class="font-semibold">{{ row['fc'] }}</p>
+
+            <div class="flex items-center gap-2">
+            {% if row['res_flag'] == 'Paid' %}
+            <img src="{{ url_for('static', filename='cp.png') }}" alt="Pagado" class="w-6 h-6">
+            {% elif row['res_flag'] == 'Unpaid' %}
+            <img src="{{ url_for('static', filename='cu.png') }}" alt="No Pagado" class="w-6 h-6">
+            {% elif row['res_flag'] == 'Cancel' %}
+            <img src="{{ url_for('static', filename='cc.png') }}" alt="Cancelado" class="w-6 h-6">
+            {% endif %}
             <p class="text-gray-600">{{ row['producto'] }} - ${{ '%.2f'|format(row['pc_total']) }}</p>
+            </div>
           </div>
         {% endfor %}
       </div>

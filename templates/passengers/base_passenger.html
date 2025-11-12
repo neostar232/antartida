@@ -2,12 +2,48 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=0.75"> <!-- ACÁ SE CAMBIA EL TAMAÑO DE VISTA PARA CELU -->
+  <meta name="viewport" content="width=device-width, initial-scale=0.75">
   <title>{% block title %}Pasajeros{% endblock %}</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+  <style>
+    /* Estilo modal-overlay */
+    .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 50; /* Debe ser mayor que cualquier otro elemento */
+    
+    /* Centrado Flexbox */
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+  }
+  /* Estilo adicional necesario para ocultar el modal */
+  .hidden {
+      display: none;
+  }
+  </style>
+
   {% block head %}{% endblock %}
 </head>
 <body class="bg-gray-100">
+  
   {% block content %}{% endblock %}
+  
+  {# Código del cuadro de diálogo modal #}
+  <div id="survey-modal" class="modal-overlay hidden">
+    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+      <h3 class="text-xl font-semibold mb-4 text-red-600">Not Available Yet</h3>
+      <p class="mb-6 text-gray-700">Available 48hs before arrive</p>
+      <button id="close-modal-btn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Close</button>
+    </div>
+  </div>
+
+  {% block scripts %}{% endblock %} 
+  
 </body>
 </html>
