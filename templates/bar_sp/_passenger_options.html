@@ -1,8 +1,0 @@
-<select id="passenger" name="passenger">
-    <option value="">-- Selecciona un Pasajero --</option>
-    {% for pasajero in pasajeros %}
-        <option value="{{ pasajero.id_passenger }}">{{ pasajero.passenger_name }}</option>
-    {% else %}
-        <option value="" disabled>No hay pasajeros en esta cabina</option>
-    {% endfor %}
-</select>
