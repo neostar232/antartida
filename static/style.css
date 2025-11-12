@@ -334,3 +334,14 @@ nav.navbar li a:hover {
   align-items: baseline; /* Esto alinea verticalmente los elementos */
   gap: 10px; /* Esto añade un espacio entre los elementos */
 }
+
+
+.inline-container {
+    display: flex;
+    align-items: baseline; /* Esto alinea verticalmente los elementos */
+    gap: 10px; /* Añade un pequeño espacio entre ellos */
+}
+
+.short-select {
+width: 275px; /* Cambia este valor al ancho que desees */
+}

@@ -1,0 +1,508 @@
+
+@media only screen and (max-width: 760px) {
+	
+	html, body {
+		height: 100%;
+	}
+	
+	#r-wrapper, 
+	.homepage #r-wrapper {
+		min-height: 100%;
+		height: auto !important;
+		height: 100%;
+		margin: 0;
+	}
+	#push { height:0; }
+	
+	/*
+	body {
+		display: table;
+		vertical-align:top;
+	}
+	.r-block {
+		display: table-row;
+		vertical-align:top;
+	}
+	*/
+	
+	.show-on-r {
+		display:block !important;
+	}
+	
+	.hide-on-r {
+		display:none !important;
+	}
+	
+	.r-homepage-content {
+		float:left; width:100%;
+	}
+	
+	#r-homepage-picture {
+		float:left; width:100%; height:217px;
+		border-bottom:1px solid #fff;
+	}
+		
+		.r-homepage-picture-1 {
+			background:transparent url(../img/bground/background1r.jpg) center center no-repeat;
+		}
+		
+		.r-homepage-picture-2 {
+			background:transparent url(../img/bground/background2.jpg) center center no-repeat;
+		}
+		
+		.r-homepage-picture-3 {
+			background:transparent url(../img/bground/background3.jpg) center center no-repeat;
+		}
+		
+		.r-homepage-picture-4 {
+			background:transparent url(../img/bground/background4.jpg) center center no-repeat;
+		}
+		
+	.header-wrapper-box, .homepage .header-wrapper-box {
+		float:left; width:100%; min-width:0; overflow:visible;
+	}
+	
+	.grid-978 .header-wrapper, 
+	.grid-978 .content-wrapper, 
+	.grid-978 .footer-content, 
+	.grid-978 #footer_inner, 
+	.grid-978 #homebox-inner {
+		width:100%;
+	}
+	
+	.header-wrapper, 
+	.content-wrapper, 
+	.footer-content {
+		width:100%; min-height:0; min-width:0;
+	}
+		
+		.footer-content {
+			float:left; /* height:269px; */
+		}
+	
+	.homepage .header-wrapper {
+		float:left; width:100%; height:auto; /*94px;*/
+	}
+	
+	.long-right-bar {
+		position:relative;
+		text-align:left;
+	}
+	
+	.long-left-bar {
+		position:relative;
+	}
+	
+	.nav2-bar {
+		background:#253357;
+		height:auto;
+		top:auto;
+	}
+	
+	#sm-top-menu {
+		display:none;
+	}
+	
+	#top-menu {
+		float:left; width:100%;
+	}
+		
+		#top-menu li {
+			width:100%;
+			border-bottom:1px solid #989fb0;
+			background:#253357;
+		}
+		
+		#top-menu li a {
+			padding-left:10px; padding-right:10px;
+			font-size:20px; /*text-transform:capitalize;*/
+		}
+		
+	#top-menu-item-1, #top-menu-item-3 {
+		display:none;
+	}
+	
+	.language-bar {
+		width:100%;
+		background:#253357;
+	}
+	
+	#top-lang {
+		width:100%; height:33px;
+		border-bottom:1px solid #fff;
+	}
+		
+		#top-lang  a {
+			display:block; width:50%; float:left; height:33px; line-height:33px; padding-right:0; padding-left:0;
+			text-align:center;
+		}
+		
+			#top-lang  a#lang-esp {
+				width:49%;
+				border-right:1px solid #989fb0;
+			}
+		
+	.logo-bar {
+		width:100%; float:left; height:60px;
+		position:relative; top:auto;
+		background:#253357;
+	}
+		
+		.logo-bar .logo {
+			display:block; float:none; width:144px; height:60px; margin:0 auto;
+			background:#253357 url(../images/logo-r.png) center center no-repeat;
+		}
+		
+		#r-back {
+			display:block; width:29px; height:29px; overflow:hidden;
+			background:#253357 url(../img/r-back.png) 0 0 no-repeat;
+			position:absolute; top:15px; left:10px; z-index:1;
+		}
+		
+	#homebox {
+		display:none;
+	}
+	
+	
+	.header-background {
+		display:none;
+	}
+	
+	.single-page .header-wrapper {
+		height:94px; overflow:hidden;
+	}
+	
+	.content-wrapper {
+		float:left; padding:0;
+	}
+		
+		.homepage .content-wrapper {
+			min-height:0;
+		}
+		
+	h1 {
+		line-height:22px;
+		font-size:20px;
+	}
+	
+	.content-wrapper h1 {
+		display:block; float:left; clear:both; width:auto; height:50px; line-height:50px; margin:0; padding:0 10px;
+	}
+	
+	.book-today {
+		display:none;
+	}
+	
+	.page-itineraries .left-side {
+		display:none;
+	}
+	
+	.right-side {
+		display:block; float:left; width:100%; padding:0; margin:0;
+	}
+	
+		.page-itineraries .right-side {
+			padding-top:0;
+		}
+	
+	.content-wrapper .right-side, 
+	.content-wrapper .right-side-5a, 
+	.content-wrapper .right-side-7b, 
+	.content-wrapper .right-side-3a {
+		float:left; margin-bottom:0;
+	}
+	
+	.content-wrapper .left-side {
+		float:left; width:100%;
+	}
+	
+	.content-wrapper .right-side {
+		display:none;
+	}
+	
+	.content-wrapper .one-column {
+		float:left; width:100%;
+	}
+	
+	.page-galleries .left-side {
+		display:none;
+	}
+	
+	.sidethumb {
+		display:none;
+	}
+	
+	.sidecontent {
+		display:block; float:left; width:100%; padding:0; margin:0;
+		border-bottom:1px solid #989fb0;
+	}
+	
+	.sidecontent h3 {
+		display:block; float:left; width:100%; height:49px; padding:0; line-height:49px;
+		background:transparent;
+		color:#fff; font-size:20px; text-transform:capitalize;
+		background:#253357;
+	}
+	
+	.sidecontent h3 a {
+		display:block; height:49px; line-height:49px; padding:0 10px;
+	}
+	
+	.page-the-ushuaia .sidetext,
+	.page-galleries .sidetext, 
+	.page-itineraries .sidetext {
+		display:none;
+	}
+	
+	.content-wrapper .left-side-7a {
+		width:100%; margin-bottom:0;
+	}
+	
+	.content-wrapper .left-side-9a {
+		width:100%; margin-bottom:0;
+	}
+	
+	.content-wrapper br {
+		clear:both;
+	}
+	
+	.quote {
+		display:none;
+	}
+	
+	.introtext {
+		padding:0 10px; line-height:20px;
+		font-size:16px;
+	}
+	
+	h2 {
+		margin:0; line-height:20px;
+		font-size:16px; 
+	}
+	
+	.left-side-9a h2, 
+	.left-side-7a h2 {
+		display:block; float:left; clear:both; width:auto; min-width:90%; margin:0 0 28px 0; padding:0 10px; line-height:20px;
+		font-size:16px;
+	}
+	
+	p {
+		margin-bottom:20px; padding:0 10px;
+		clear:both;
+		font-size:14px;
+		word-wrap:break-word;
+	}
+	
+	.right-side-5a {
+		display:none;
+	}
+	
+	#r-bottom-menu {
+		display:block; float:left; width:100%;
+		background:#253357;
+		color:#fff; font-size:20px;
+	}
+	
+	ul#r-bottom-menu li {
+		width:100%; float:left;
+		border-bottom:1px solid #989fb0;
+		background:#253357;
+	}
+	
+	ul#r-bottom-menu li a {
+		display:block; height:49px; line-height:49px; padding:0 10px;
+		/*text-transform:capitalize;*/
+		color:#fff;
+	}
+		
+		ul#r-bottom-menu li a:link, ul#r-bottom-menu li a:visited {
+			color:#fff;
+		}
+		
+
+	.single-page .left-side p img {
+		display:block; width:100%; height:auto;
+	}
+
+	
+	.right-side-3a {
+		display:none;
+	}
+	
+	
+	.sub-article.active, 
+	.sub-article:hover {
+		background:transparent;
+	}
+	
+	.sub-article-content {
+		float:left; padding:0 10px;
+	}
+		
+		.sub-article-content p {
+			padding-left:0; padding-right:0;
+		}
+		
+		.sub-article-content ul li {
+			margin-left:20px;
+		}
+		
+	.department {
+		padding:0 10px 10px 10px; line-height:20px;
+		font-size:16px;
+	}
+	
+	.hr-list {
+		width:100%;
+	}
+	
+	.hr-list li {
+		width:90%; margin:0 0 15px 25px;
+	}
+	
+	
+	.expedition-staff {
+		padding:0 10px;
+		border:0;
+	}
+	
+	.expedition-staff img {
+		width:100%; height:auto;
+	}
+	
+	.staff-content {
+		width:100%; float:left;
+	}
+	
+	.staff-content h3 {
+		width:100%; margin:15px 0; line-height:20px;
+		font-size:16px; 
+	}
+	
+	.expedition-staff p {
+		width:100%; padding-left:0; padding-right:0;
+	}
+	
+	.test-quote {
+		padding-left:10px; padding-right:10px;
+		background-position:10px 16px;
+	}
+	
+	
+	.content-wrapper .left-side-9b {
+		width:100%;
+	}
+		
+		.left-side-9b img {
+			width:90%; height:auto; margin:0 0 20px 10px;
+		}
+		
+		.left-side-9b h2 {
+			padding:0 10px 10px 10px;
+		}
+	
+		.page-deck-plan-and-cabins map {
+			display:none;
+		}
+		
+		.img-legend {
+			width:90%; padding:0 10px;
+		}
+
+	.content-wrapper .right-side-7b {
+		width:auto; min-width:90%; padding:0 10px 20px 10px;
+	}
+		
+		.right-side-7b img {
+			display:block; width:100%; height:auto;
+		}
+	
+	.footer-wrapper, 
+	.homepage .footer-wrapper {
+		float:left; height:auto; overflow:hidden;
+	}
+	
+		.page-gallery #controls-wrapper {
+			display:none !important;
+		}
+		
+		.page-gallery #thumb-tray {
+			display:none !important;
+		}
+		
+		.gallery-white-back {
+			background:transparent;
+		}
+		
+		.page-gallery .footer-wrapper {
+			background:transparent;
+		}
+		
+	#footer_inner {
+		width:100%;
+	}
+	
+	#footer_inner .copyleft {
+		display:none;
+	}
+	
+	
+	#r-footer-social {
+		float:left; width:100%; height:50px; line-height:50px; margin:46px 0 0 0;
+		background:#eae6e6;
+	}
+		
+		#r-footer-social a {
+			float:left; width:96px; margin-top:10px; padding-left:30px; line-height:31px;
+			color:#333; text-transform:uppercase;
+		}
+	
+		#r-footer-social a.last {
+			margin-right:0;
+		}
+		
+		#r-footer-social a.social-tw {
+			float:left; margin-right:0;
+		}
+		
+		#r-footer-social a.social-fb {
+			float:left; margin-left:10px; margin-right:5px;
+		}
+	
+	
+	#footer_inner2, 
+	.homepage #footer_inner2 {
+		width:auto; padding:0 10px;
+	}
+	
+	#footer1 {
+		width:100%; padding-right:0;
+	}
+		
+		#footer-img {
+			width:100%;
+		}
+		
+		#footer_inner2 img  {
+			float:none;
+		}
+		
+		#footer-img img {
+			display:block; width:98px; height:auto; margin:0 auto 17px auto;
+		}
+		
+	#footer-text {
+		width:100%;
+	}
+	
+	#footer2 {
+		display:none;
+		width:100%;
+	}
+	
+	#footer3 {
+		display:none;
+		width:100%;
+	}
+	
+}
