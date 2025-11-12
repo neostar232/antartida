@@ -1,0 +1,38 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Uploads{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <br>
+
+  <div class="grid-container">
+    
+    <div class="grid-item">
+      <b>Upload de Menues</b><br>
+      <a class ="action" href="{{ url_for('consumption.add_menu_file') }}" style="margin-right: 10px;">Acceso al upload de Menú</a>
+      <br>
+      <br>
+      <br>
+      <br>
+    </div>
+    <div class="grid-item">
+      <b>Upload de Actividades</b><br>
+      <a class ="action" href="{{ url_for('consumption.add_actvts_file') }}" style="margin-right: 10px;">Acceso al upload de Actividades</a>
+      <br>
+      <br>
+      <br>
+      <br>
+    </div>
+    
+  <br>
+
+{% endblock %}
