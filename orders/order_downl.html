@@ -1,0 +1,65 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+
+  <h1>
+   
+    {% block title %}Orden de Pedido{% endblock %} <br>
+
+  </h1>
+
+{% endblock %}
+
+{% block content %}
+{% for o in qohd %}
+    <table>
+      <tbody>
+        <tr>
+          <td rowspan="2" style="width:15%">
+            <img src="{{ url_for('static', filename='buquex.png') }}">
+          </td>
+          <td>
+            
+          </td>
+        </tr>
+        <tr>
+          <td style="text-align:left; vertical-align:bottom">
+            <b>Fecha de emisión:</b> {{ o.dt_order }}<br>
+            Nro. de Pedido: {{ o.formato }}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+{% endfor %}
+
+<br>
+<br>
+
+<table>
+  <thead>
+    <tr>
+      <th scope="col">Código</th>
+      <th scope="col">Producto</th>
+      <th scope="col">Cant. Solicitada</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for dor in det_or %}
+    <tr>
+      <td>{{dor.id_product}}</td>
+      <td>{{dor.producto}}</td>
+      <td>{{dor.q_prods}}</td>
+    </tr>
+    {% if not loop.last %}
+    {% endif %}
+    {% endfor %}
+    </tbody>
+    </table>
+<br>
+<br>
+
+{% endblock %}

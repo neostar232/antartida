@@ -1,0 +1,59 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Baja de productos por vencimiento, inutilización, cortesía o similares.{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form action="{{ url_for('stock.add_out_product') }}" method="post">
+    Ingrese el producto que se desafectará del stock por vencimiento, inutilización, entrega en cortesía u otras situaciones similares.<br>
+    Complete toda la información solicitada. 
+    <br><br>
+
+    <label2 for="tx_ca">Seleccionar Motivo</label>
+    <select name="tx_ca">
+      <option value="">Seleccionar un motivo</option>
+      <option value="Cortesía">Cortesía</option>
+      <option value="Mal estado">Mal estado</option>
+      <option value="Rotura/Destrucción">Rotura/Destrucción</option>
+      <option value="Vencimiento">Vencimiento</option>
+      <option value="Otros">Otros</option>
+    </select>
+
+    <label2 for="tx_wh">Seleccionar almacén</label>
+    <select name="id_wh">
+      <option value="" style="width: 250px;">Seleccionar almacén</option>
+      {% for wh in whs %}
+        <option name="id_wh" value="{{wh.id_warehouse}}" style="width: 50%" >{{wh.tx_warehouse}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <br>
+    <label2 for="start">Fecha de vencimiento de los productos:</label>
+    <input type="date" id="expiry_date" name="expiry_date" value="" min="2024-06-01" max="2035-12-31" style="width: 120px;"/><br>
+
+    <label for="tx_dop">Seleccione producto a dar de baja</label><br>
+    <select name="id_dop">
+      <option value="" style="width: 5500px;">Seleccionar producto</option>
+      {% for prod in prods %}
+        <option name="id_dop" value="{{prod.id_product}}" style="width: 400px;">{{prod.desc_product}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <br><br>
+    <label2 for="qty_out">Cantidad:</label>
+    <input name="qty_out" id="qty_out" style="width: 80px;" type="number" required>
+    <br>
+    <label for="reason_out">Ampliar motivo y situación que provocó la baja:</label><br>
+    <textarea name="reason_out" cols="65" rows="5" required></textarea>
+    <br>
+    <input type="submit" value="Dar de baja Productos">
+  </form>
+  <br>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+  {% endblock %}

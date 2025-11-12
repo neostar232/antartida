@@ -1,0 +1,46 @@
+{# templates/consumption/_product_options.html #}
+
+<h4>Seleccionar Productos:</h4>
+<div id="product-list-scroll-container" style="max-height: 250px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+    {% if prods %}
+    <table class="product-selection-table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;"></th>
+                <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">Producto</th>
+                <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">Precio Unitario</th>
+                <th style="padding: 8px; border-bottom: 1px solid #ddd; text-align: left;">Cantidad</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prd in prods %}
+            <tr>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                    <input type="checkbox"
+                           name="selected_products"
+                           value="{{ prd.id_product }}"
+                           data-price="{{ prd.nu_price_usd }}"
+                           id="product-{{ prd.id_product }}">
+                </td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                    <label for="product-{{ prd.id_product }}">{{ prd.producto }}</label>
+                </td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">${{ "%.2f"|format(prd.nu_price_usd) }}</td>
+                <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                    <input type="number"
+                           name="quantity_{{ prd.id_product }}"
+                           value="0"
+                           min="0"
+                           style="width: 60px;"
+                           class="product-quantity"
+                           data-product-id="{{ prd.id_product }}" disabled
+                    >
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No hay productos disponibles.</p>
+    {% endif %}
+</div>

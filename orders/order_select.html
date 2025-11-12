@@ -1,0 +1,48 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %} Listado de Pedidos Generados {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <br>
+
+    <label for="tx_amp">Pedidos cerrados:</label>
+  <form method="post">
+    <table class="requesting">
+      <body>
+        <tr>
+          <td>Fecha</td>
+          <td>Nro. de Pedido</td>
+          <td>Acciones (Visualización y Descargas)</td>
+        </tr>
+         {% for detor in closed_order %}
+        <tr>
+          <td name="id_prodv" style="width: 150px;">{{detor.dt_order}}</td>
+          <td name="nm_prodv" style="width: 200px;">{{detor.format}}</td>
+          <td>
+            <button name="id_or" value="{{detor.id_order}}" formaction="{{ url_for('orders.order_detail') }}" type="submit" class="noborder-button">
+              <img src="{{ url_for('static', filename='lupa.png') }}" alt="Visualizar" border="0">
+            </button>
+            <button name="id_or" value="{{detor.id_order}}" formaction="{{ url_for('orders.order_detail_dl') }}" type="submit" class="noborder-button">
+              <img src="{{ url_for('static', filename='excel.png') }}" alt="Visualizar" border="0">
+            </button>
+            <button name="id_or" value="{{detor.id_order}}" formaction="{{ url_for('orders.order_detail_pdf') }}" type="submit" class="noborder-button">
+              <img src="{{ url_for('static', filename='pdf_dl.png') }}" alt="Visualizar" border="0">
+            </button>
+          </td>
+        </tr>
+            {% if not loop.last %}
+            {% endif %}
+          {% endfor %}
+      </body>
+    </table>
+  </form>
+    <br>
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

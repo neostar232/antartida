@@ -1,0 +1,49 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Ingreso de Productos - Almacén / Vencimiento {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    Recuerde que los ingresos se realizan considerando almacén y fecha de vencimiento<br>
+    <br><br>
+
+    <label for="tx_wh">Seleccionar almacén</label>
+    <select name="id_wh">
+      <option value="" style="width: 250px;">Seleccionar almacén</option>
+      {% for wh in whs %}
+        <option name="id_wh" value="{{wh.id_warehouse}}" style="width: 50%" >{{wh.tx_warehouse}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <label for="tx_odate">Fecha de remito:</label>
+    <input type="date" id="order_date" name="order_date" value="" min="2024-06-01" max="2035-12-31" style="width: 120px;"/>
+    <label for="order_num">Nro. de Remito (0000-00000000)</label>
+    <input name="order_num" id="order_num" required style="width: 200px;">
+
+    <label for="start">Fecha de vencimiento de los productos:</label>
+    <input type="date" id="expiry_date" name="expiry_date" value="" min="2024-06-01" max="2035-12-31" style="width: 120px;"/>
+
+    <label for="tx_amp">Seleccione productos a ingresar</label>
+    <select size="15" name="id_dmp">
+      <option value="" style="width: 200px;">Seleccionar productos</option>
+      {% for prod in prods %}
+        <option value="{{prod.id_product}}" style="width: 400px;">{{prod.desc_product}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <br>
+    <label for="quantity_in">Cantidad:</label>
+    <input name="quantity_in" id="quantity_in" required style="width: 200px;">
+    <br>
+    <input type="submit" value="Ingresar Productos">
+  </form>
+
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

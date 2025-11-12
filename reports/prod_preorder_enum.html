@@ -1,0 +1,40 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Contenido de la preorden seleccionada{% endblock %}</h1>
+  {% if g.user %}
+    
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+    
+</header>
+    <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
+      <thead>
+        <tr>
+          <th scope="col">Producto</th>
+          <th scope="col">Cant. Solicitada</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in spo %}      
+          <tr>
+            <td>{{prod.producto}}</td>
+            <td>{{prod.q_solicitada}}</td>
+          </tr>
+        {% if not loop.last %}
+         {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+
+<br>
+
+{% endblock %}

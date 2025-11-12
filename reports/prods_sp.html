@@ -1,0 +1,43 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Listado de Precios del Punto de Venta{% endblock %}</h1>
+  {% if g.user %}
+    
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+    
+</header>
+    <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
+      <thead>
+        <tr>
+          <th scope="col">Código</th>
+          <th scope="col">Descripción</th>
+          <th scope="col">Precio (USD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in prpv %}      
+          <tr>
+            <td>{{prod.id_product}}</td>
+            <td>{{prod.desc_product}}</td>
+            <td>{{prod.nu_price_usd}}</td>
+          </tr>
+        {% if not loop.last %}
+         {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+
+<br>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

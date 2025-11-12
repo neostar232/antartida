@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Geolocation con OpenStreetMap y Leaflet</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        /* Estilo básico para el mapa */
+        #mapid {
+            height: 400px; /* Altura del mapa */
+            width: 100%;  /* Ancho del mapa */
+            border: 1px solid #ccc; /* Un borde para que se vea mejor */
+        }
+    </style>
+</head>
+<body>
+    <h1>Tu Ubicación Actual (requiere que otorgues permisos)</h1>
+    <p>Haz clic en el botón para obtener tus coordenadas y verlas en el mapa.</p>
+
+    <button onclick="getLocation()">Mostrar mi Ubicación</button>
+
+    <p id="demo"></p>
+
+    <div id="mapid"></div> <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <script>
+        const x = document.getElementById("demo");
+        let mymap; // Variable para almacenar la instancia del mapa de Leaflet
+        let marker; // Variable para almacenar el marcador
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(success, error);
+            } else {
+                x.innerHTML = "La geolocalización no es compatible con este navegador.";
+            }
+        }
+
+        function success(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            x.innerHTML = "Latitud: " + latitude + "<br>Longitud: " + longitude;
+
+            // Inicializa o actualiza el mapa con las nuevas coordenadas
+            initMap(latitude, longitude);
+        }
+
+        function error() {
+            alert("No se puede acceder a la ubicación. Asegúrate de haber concedido los permisos de ubicación.");
+        }
+
+        // Función para inicializar el mapa
+        function initMap(lat, lng) {
+            const initialCoords = [lat, lng];
+
+            if (!mymap) { // Si el mapa no ha sido inicializado, créalo
+                mymap = L.map('mapid').setView(initialCoords, 15); // 'mapid' es el ID del div, 15 es el nivel de zoom
+
+                // Agrega una capa de tiles de OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(mymap);
+
+                // Agrega un marcador inicial
+                marker = L.marker(initialCoords).addTo(mymap)
+                    .bindPopup("¡Aquí estás!").openPopup();
+            } else { // Si el mapa ya existe, simplemente céntralo y mueve el marcador
+                mymap.setView(initialCoords, 15);
+                marker.setLatLng(initialCoords).setPopupContent("¡Aquí estás!").openPopup();
+            }
+        }
+    </script>
+
+</body>
+</html>

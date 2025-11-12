@@ -1,0 +1,38 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Detalle del Pedido:{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+<br><br>
+<table>
+  <thead>
+    <tr>
+      <th scope="col">Código</th>
+      <th scope="col">Producto</th>
+      <th scope="col">Cant. Solicitada</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for dor in det_or %}
+    <tr>
+      <td>{{dor.id_product}}</td>
+      <td>{{dor.producto}}</td>
+      <td>{{dor.q_prods}}</td>
+    </tr>
+    {% if not loop.last %}
+    {% endif %}
+    {% endfor %}
+    </tbody>
+    </table>
+<br>
+<br>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+   
+{% endblock %}

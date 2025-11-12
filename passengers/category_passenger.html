@@ -1,0 +1,53 @@
+{% extends "passengers/base_passenger.html" %}
+{% block title %}Categoría - {{ category }}{% endblock %}
+{% block content %}
+<div class="flex-col p-4 h-screen">
+  <div class="flex items-center mb-4">
+    <span class="text-2xl cursor-pointer mr-2" onclick="window.location.href='{{ url_for('auth_passengers.menu') }}'">←</span>
+    <h1 id="category-title" class="text-2xl font-bold">{{ category }}</h1>
+  </div>
+  <div class="bg-white p-4 rounded-lg shadow">
+    <label for="item-select" class="block text-lg font-semibold mb-2">Selecciona un Item</label>
+    <select id="item-select" class="w-full p-2 mb-4 border rounded">
+      <option value="">-- Selecciona --</option>
+      {% for item in items %}
+        <option value="{{ item }}">{{ item }}</option>
+      {% endfor %}
+    </select>
+    {% if category == 'Bar' %}
+    <div id="point-of-sale" class="mb-4">
+      <label for="pos-select" class="block text-lg font-semibold mb-2">Punto de Venta</label>
+      <select id="pos-select" class="w-full p-2 border rounded">
+        <option value="Bar" selected>Bar</option>
+        <option value="Servicio al Cuarto">Servicio al Cuarto</option>
+        <option value="Comedor">Comedor</option>
+      </select>
+    </div>
+    {% endif %}
+    <label for="room-number" class="block text-lg font-semibold mb-2">Número de Cuarto</label>
+    <input type="text" id="room-number" placeholder="Ej. 101" class="w-full p-2 mb-4 border rounded">
+    <label for="passenger-name" class="block text-lg font-semibold mb-2">Nombre del Pasajero</label>
+    <input type="text" id="passenger-name" placeholder="Ej. Juan Pérez" class="w-full p-2 mb-4 border rounded">
+    <button class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600" onclick="submitSelection()">Confirmar Selección</button>
+  </div>
+</div>
+<script>
+function submitSelection() {
+  const item = document.getElementById('item-select').value;
+  const room = document.getElementById('room-number').value;
+  const passenger = document.getElementById('passenger-name').value;
+  const pos = document.getElementById('pos-select') ? document.getElementById('pos-select').value : 'N/A';
+  if (item && room && passenger) {
+    alert(`Selección confirmada:\nItem: ${item}\nPunto de Venta: ${pos}\nCuarto: ${room}\nPasajero: ${passenger}`);
+    document.getElementById('item-select').value = '';
+    document.getElementById('room-number').value = '';
+    document.getElementById('passenger-name').value = '';
+    if (document.getElementById('pos-select')) {
+      document.getElementById('pos-select').value = 'Bar';
+    }
+  } else {
+    alert('Por favor, completa todos los campos.');
+  }
+}
+</script>
+{% endblock %} 

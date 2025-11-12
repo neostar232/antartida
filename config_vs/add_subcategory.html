@@ -1,0 +1,30 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Alta de Subcategoría{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="tx_scate">Nombre de la Subcategoría</label>
+    <input name="tx_scate" id="tx_scate" required style="width: 200px;">
+    <label for="tx_cate">Seleccione categoría a la que pertenece</label>
+
+    <select name="id_cate">
+      <option value="" style="width: 200px;">Seleccionar categoría</option>
+      {% for cate in cates %}
+        <option name="id_cate" value="{{cate.id_category}}" style="width: 200px;">{{cate.tx_category}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Ingresar Subcategoría">
+  </form>
+
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

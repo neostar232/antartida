@@ -1,0 +1,52 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Listado de órdenes anteriores para clonar{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+
+  <form action="{{ url_for('orders.clone_preorder') }}" method="post">
+    Aquí puede ingresar una orden para clonarla y evitar realizar la carga totalmente manual.<br>
+    <label2 for="tx_ont">Si ya conoce cuál orden clonará, ingrese el nro. de orden </label>
+    <input type="number" name="id_order_tc" style="width:50px;">
+    <label2 for="tx_onh"> y luego haga click .
+      <!-- <a class ="action" href="{{ url_for('orders.clone_preorder') }}" style="margin-right: 10px;">acá</a>. -->
+      <input type="submit" value="Clonar!">
+    </label>
+  </form>
+    <br>
+    También, y en caso de tener dudas, puede consultar las órdenes anteriores, para revisar su contenido y 
+    seleccionar correctamente.
+    <br><br>
+
+    <label for="tx_amp">Seleccione la orden a visualizar</label>
+    <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
+      <thead>
+        <tr align="center">
+          <th scope="col">Fecha</th>
+          <th scope="col">Nro. de Orden</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for dets in search_purch_order %}
+        <tr>
+          <td name="do" style="width: 100px;">{{dets.dt_order}}</td>
+          <td name="ior" style="width: 80px;">
+            <a class="action" href="{{ url_for('orders.detail_preorder', id_order=dets.id_order) }}" target="newWindow" onclick="openNewWindow()">{{dets.id_order}}</a>
+          </td>
+        </tr>
+        {% if not loop.last %}
+        {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <br>
+  
+  <br>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

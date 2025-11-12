@@ -1,0 +1,62 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Listado de Pasajeros{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+    
+</header>
+
+    <form>
+        <label for="triplist">Seleccione recorrido:</label>
+        <select id="id_campaign"
+                name="id_campaign"
+                hx-get="{{ url_for('passengers.get_passenger_htmx') }}"
+                hx-trigger="change"
+                hx-target="#list_passenger-container"
+                hx-swap="innerHTML">
+            <option value="">Seleccione recorrido</option>
+            {% for trip in ique %}
+                <option name="id_campaign" value="{{ trip.id_campaign }}">{{ trip.tx_iti }}</option>
+            {% endfor %}
+        </select>
+
+        <hr>
+
+        <h2>Listado de Pasajeros del recorrido Seleccionado</h2>
+        <div id="list_passenger-container"
+            hx-on:htmx:after-swap="initializeTableSorter(this)">
+            <p>Seleccione recorrido para ver pasajeros.</p>
+        </div>
+    </form>
+    
+    
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        function initializeTableSorter(container) {
+            // Busca la tabla dentro del contenido recién cargado
+            const table = container.querySelector('#supplierTable'); 
+            if (table) {
+                // Re-inicializa TableSorter
+                // Si usas jQuery:
+                $(table).tablesorter(); 
+                // Si usas otra librería, usa su método de inicialización.
+            }
+        }
+
+        // Inicialización inicial (para cuando la página carga con datos estáticos,
+        // aunque en tu caso es dinámico, es buena práctica si la lógica cambia).
+        // Si la tabla *nunca* está al cargar la página, esta llamada no es necesaria.
+        // initializeTableSorter(document.getElementById('list_passenger-container'));
+    </script>
+{% endblock %}

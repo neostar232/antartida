@@ -1,0 +1,84 @@
+{# templates/consumption/_all_passenger_consumptions.html #}
+
+<div id="consumption_passenger-container">
+    {% if consumptions %}
+        <h3>Detalle de Consumos (Válidos)</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in consumptions %}
+                <tr>
+                    <td><a href="{{ url_for('consumption.anull_action', id_consumption=item.id_consumption) }}">
+                            {{item.id_ticket}}
+                        </a>
+                    </td>
+                    <td style="{% if item.status == 'P' %}color: red; font-weight: bold;{% endif %}">
+                        <b>{{item.status}}</b>
+                    </td>
+                    <td>{{item.fc}}</td>
+                    <td>{{item.producto}}</td>
+                    <td>{{item.nu_quantity}}</td>
+                    <td>{{"%.2f"|format(item.pc_unity)}}</td>
+                    <td>{{"%.2f"|format(item.pc_total)}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="6" style="text-align: right;"><strong>Total General:</strong></td>
+                    <td><strong>{{ "%.2f"|format(total_general) }}</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        <p>Si desea cancelar un consumo, siga el vinculo del Nro. de Ticket.</p>
+        <p>Si desea hacer el cierre de los estados <b>'P'</b> de la cuenta del cliente, hacer click <a href="{{ url_for('consumption.close_account_sel', id_passenger=id_passenger) }}">acá</a>.</p>
+    {% else %}
+        <p>Este pasajero no tiene consumos válidos registrados.</p>
+    {% endif %}
+</div>
+<br>
+<hr>
+
+<div id="anullment_passenger-container">
+    {% if anullments %}
+        <h3>Consumos Anulados</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Ticket</th>
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Motivo de Anulación</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total</th>                    
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in anullments %}
+                <tr>
+                    <td>{{item.id_ticket}}</td>
+                    <td>{{item.fc}}</td>
+                    <td>{{item.producto}}</td>
+                    <td>{{item.tx_anullment}}</td>
+                    <td>{{item.nu_quantity}}</td>
+                    <td>{{"%.2f"|format(item.pc_unity)}}</td>
+                    <td>{{"%.2f"|format(item.pc_total)}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>Este pasajero no tiene consumos anulados.</p>
+    {% endif %}
+</div>

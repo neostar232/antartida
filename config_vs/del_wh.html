@@ -1,0 +1,29 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Baja de Almacén{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="tx_wh">Seleccione almacén a dar de baja</label>
+    Antes de realizar esta acción, verifique que el almacén no contenga existencias!!!
+    <br><br>
+    <select name="id_wh">
+      <option value="" style="width: 200px;">Seleccionar almacén</option>
+      {% for wh in whs %}
+        <option name="id_wh" value="{{wh.id_warehouse}}" style="width: 200px;">{{wh.tx_warehouse}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Desactivar Almacén">
+  </form>
+  
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

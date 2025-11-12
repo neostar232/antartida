@@ -1,0 +1,26 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Baja de Usuarios{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<br>
+El usuario que seleccione de la lista desplegable será eliminado de manera lógica, a fin de mantener el historial de operaciones.
+  <form action="{{ url_for('auth.del_user') }}" method="post">
+    <select name="sel_user">
+      <option value="" style="width: 200px;">Seleccionar Usuario</option>
+      {% for user in duser %}
+        <option name="sel_user" value="{{user.id_user}}" style="width: 80px;">{{user.tx_name}}</option>
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Generar Baja">
+  </form>
+
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

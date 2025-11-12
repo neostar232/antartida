@@ -1,0 +1,98 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <br>
+
+  <div class="grid-container">
+    
+    <div class="grid-iteml">
+      <img src="/static/drinks.png" alt="Bar">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=1) }}">Bar</a></b><br>      
+    </div>
+
+    <div class="grid-iteml">
+      <img src="/static/internet.png" alt="Internet">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.prods_services', id_scat=93) }}">Internet</a></b><br>
+    </div>
+    
+    <div class="grid-iteml">
+      <img src="/static/clothes.png" alt="Clothes">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=10) }}">Ropa y Accesorios</a></b><br>
+    </div>
+
+    <div class="grid-iteml">
+      <img src="/static/merchan.png" alt="Merchandising">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=[11, 13, 14]) }}">Merchandising</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/laundry.png" alt="Lavandería">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.prods_services', id_scat=97) }}">Servicio de lavandería</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/cama-individual.png" alt="Upgrade de Cabina" style="width:32px; height:auto;">
+      <br>
+      <b><a class="action" href="{{ url_for('upgrade_cabin.upgrade_cabin') }}">Upgrade de Cabina</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/consumption.png" alt="Consumos">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=1) }}">Estado de Cuenta / Consumos</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/impresora.png" alt="Impresiones">
+      <br>
+      <b><a class="action" href="{{ url_for('print_module.sel_ticket_reprint') }}">Reimpresión de Tickets</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/money_bag.png" alt="Cobranzas">
+      <br>
+      <b><a class="action" href="{{ url_for('reports.collections') }}">Cobranzas Realizadas</a></b> / 
+      <b><a class="action" href="{{ url_for('reports.collectionsp') }}">Cobranzas Pendientes</a></b>
+      <br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/padlock.png" alt="Psw">
+      <br>
+      <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=2) }}">Recupero datos usuario</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/listing.png" alt="Listado de Pasajeros">
+      <br>
+      <b><a class="action" href="{{ url_for('passengers.psg_list') }}">Listado de Pasajeros</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/invoice.png" alt="Listado General de Precios">
+      <br>
+      <b><a class="action" href="{{ url_for('passengers.general_lp') }}">Lista General de Precios</a></b><br>
+    </div>
+
+    
+  </div>
+
+  <br>
+
+  <!-- 
+  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
+  <br>
+  -->
+{% endblock %}

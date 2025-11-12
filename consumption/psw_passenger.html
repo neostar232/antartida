@@ -1,0 +1,37 @@
+{% extends 'base_r.html' %}
+
+{% block header %}
+  <h1>{% block title %}Obtener credenciales por pasajero{% endblock %}</h1>
+  {% if g.user %}
+  
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <form>
+        <label for="cabpass">Seleccionar Cabina/Pasajero:</label>
+        <select id="id_pass"
+                name="id_pass"
+                hx-get="{{ url_for('consumption.get_psw_htmx') }}"
+                hx-trigger="change"
+                hx-target="#consumption_passenger-container"
+                hx-swap="innerHTML">
+            <option value="">Seleccionar Pasajero</option>
+            {% for pass in pcons %}
+                <option name="id_pass" value="{{ pass.id_passenger }}">{{ pass.tx_passenger }}</option>
+            {% endfor %}
+        </select>
+
+        <hr>
+
+        <h2>Credenciales del Pasajero Seleccionado</h2>
+        <div id="consumption_passenger-container">
+            <p>Selecciona un pasajero para ver datos de acceso.</p>
+        </div>
+    </form>
+    
+    
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

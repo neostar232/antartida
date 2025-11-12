@@ -1,0 +1,59 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Selección de Productos para pedidos {% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form action="{{ url_for('orders.add_to_order') }}" method="post" onkeydown="return event.key != 'Enter';">
+    Seleccione los productos, agregando las cantidades a solicitar.
+    <br><br>
+    
+    <label for="tx_amp">Seleccione productos a solicitar</label>
+    <table class="requesting">
+      <thead>
+        <tr align="center">
+          <th scope="col">Código</th>
+          <th scope="col">Tipo / Producto / Unidad de Medida</th>
+          <th scope="col">Existencias</th>
+          <th scope="col">Cantidad a solicitar</th>
+        </tr>
+      </thead>
+      <tbody>
+         {% for prod in prods %}
+         <tr>
+            <td name="id_prodv" style="width: 20px;">{{prod.id_product}}</td>
+              <input type=hidden name="id_prod" value="{{prod.id_product}}">
+            <td name="tx_prod2" style="width: 500px;">{{prod.producto}}</td>
+              <input type=hidden name="tx_prod" value="{{prod.producto}}">
+              <input type=hidden name="id_ctgr" value="{{prod.id_category}}">
+            <td style="width: 100px;">{{prod.existencias}}</td>
+              <input type=hidden name="q_exist" value="{{prod.existencias}}">
+            <td><input name="qty_in" style="width: 70px;" value="{{prod.nuq}}" type="number"></td>
+         </tr>
+          {% if not loop .last %}
+          {% endif %}
+          {% endfor %}
+      </tbody>
+    </table>
+    <br>
+    <input type="submit" value="Agregar productos al pedido">
+  </form>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('input[type=text]').forEach( node => node.addEventListener('keypress', e => {
+      if(e.keyCode == 13) {
+        e.preventDefault();
+      }
+    }))
+  });
+</script>
+
+
+{% endblock %}

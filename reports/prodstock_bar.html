@@ -1,0 +1,56 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Listado de Productos en Stock en el Bar{% endblock %}</h1>
+  {% if g.user %}
+    
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+
+<header>
+    
+</header>
+    <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
+      <thead>
+        <tr>
+          <th scope="col">Código</th>
+          <th scope="col">Subcategoria</th>
+          <th scope="col">Descripción</th>
+          <th scope="col">Presentacion</th>
+          <th scope="col">Punto de repedido</th>
+          <th scope="col">Existencias</th>
+          <th scope="col">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for prod in prstock %}      
+          <tr>
+            <td>{{prod.cod_producto}}</td>
+            <td>{{prod.subcategoria}}</td>
+            <td>{{prod.desc_producto}}</td>
+            <td>{{prod.presentacion}}</td>
+            <td>{{prod.punto_repedido}}</td>
+            <td>{% if prod.existencias|int == prod.existencias %}
+                  {{ prod.existencias|int }}
+                {% else %}
+                  {{ prod.existencias|round(2) }}
+                {% endif %}
+            </td>
+            <td>{{prod.control_stock}}</td>
+          </tr>
+        {% if not loop.last %}
+         {% endif %}
+        {% endfor %}
+      </tbody>
+    </table>
+
+<br>
+<a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+
+{% endblock %}

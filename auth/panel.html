@@ -1,0 +1,35 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Panel de Control{% endblock %}</h1>
+
+  {% if g.user %}
+  {% endif %}
+
+{% endblock %}
+
+{% block content %}
+  <br>
+  <br>
+
+  <b>
+  <div id="texto-pagina"></div>
+  </b>
+
+  <br>
+
+  <script>
+      if (sessionStorage.getItem('yaVisito')) {
+          document.getElementById('texto-pagina').innerHTML = 'Puedes seguir operando, seleccionado las pestañas y trabajando en los enlaces';
+      } else {
+          document.getElementById('texto-pagina').innerHTML = 'Bienvenido al Sistema de Gestión del Buque Ushuaia.<br>Para comenzar selecciona una pestaña y luego un enlace';
+          sessionStorage.setItem('yaVisito', 'true');
+      }
+  </script>
+
+
+  {% endblock %}

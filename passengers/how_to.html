@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Guía de Utilización{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+<b>Gestión de Productos</b><br>
+<li>Altas</li>
+<li>Bajas</li>
+<li>Modificaciones</li>
+<br>
+<b>Reportería</b><br>
+<li>Listado de Productos</li>
+<li>Listado / Control de Stock</li>
+<li>Control de Stock / Punto de Reposición</li>
+<li>Stock por Almacén</li>
+<li>Control de Stock a Vencer</li>
+<br>
+<b>Inventario</b><br>
+<li>Entradas</li>
+<li>Disponibilidad</li>
+<li>Movimientos entre Almacenes</li>
+<br>
+<b>Configuración</b><br>
+  <li>Categorías</li>
+  <li>Subcategorías</li>
+  <li>Unidades de Medida</li>
+  <li>Almacenes</li>
+<br>
+<b>Gestión de Productos:</b>
+<br>
+Cuenta inicialmente con 3 apartados: ABM (Altas, Bajas y Modificaciones).<br>
+Para el <b>Alta</b> de un producto, se necesita saber previamente, la categoría, subcategoría y unidad de Medida 
+del mismo; con estos datos y teniendo en claro cuál es el punto de repedido del mismo, se puede proceder a la 
+misma.<br>
+Para las <b>Bajas</b>, encontramos 2 apartados: Individual o Múltiple.<br>
+Cabe aclarar que las bajas no representan una eliminación total del producto, sino una "deshabilitación" del 
+producto, es decir, la baja implica una imposibilidad de que el producto sea usado.<br>
+Aclarado ésto y volviendo al tipo de baja, para realizar una baja <i>individual</i>, sólo basta con seleccionar el 
+producto de la lista desplegable y luego hacer presionar el botón correspondiente.<br>
+Las bajas <i>múltiples </i>, se realizan seleccionando 2 o más productos de la lista - manteniendo presionada la 
+tecla Ctrl, y luego, haciendo click en el botón que genera la acción.<br>
+Las <b>Modificaciones</b>, son aquellas acciones que implican un cambio en alguno de los atributos del producto 
+en sí mismo; es recomendable no realizar este tipo de acciones debido a que éstas impactan en la totalidad de las 
+ocasiones en las que un producto aparece. Sólo se recomienda realizarlas si se tratase de cambios en la unidad de 
+medida, punto de repedido o en la "rehabilitación" del producto.
+<br>
+<br>
+<b>Inventario:</b>
+<br>
+A través del enlace <b>Entradas</b> se accede al apartado dónde deben cargarse las mercaderías recibidas del 
+proveedor.
+<br>
+La <b>Disponibilidad</b> indica las cantidades de producto existente en cada almacén; el propósito de este 
+apartado, es facilitar la ubicación de los productos al momento de efectuar movimientos entre los mismos.
+<br>
+<br>
+<b>Reportería:</b>
+<br>
+<br>
+<b>Configuración:</b>
+<br>
+Los <b>Almacenes</b> cuentan con 3 atributos principales: nombre, ubicación y utilización.<br>
+El nombre indica un valor representativo del almacén en sí mismo, mientras que la ubicación nos indica en que 
+lugar del buque se encuentra el mismo.<br>
+La utilización es una marca lógica que indica si el almacén está habilitado para contener mercaderías o no; Los
+almacenes en sí una vez dados de alta no se eliminan, sino que habilitan o no, dependiendo del valor de esta 
+marca.<br>
+
+<br>
+Los <b>Pedidos</b> tiene un proceso más complejo que otros módulos, aunque no necesariamente esto lo hace mas dificultoso.<br>
+El proceso del pedido comienza con la generación de una preorden, dónde se van registrando los productos a solicitar 
+al proveedor. La preorden permite cargar productos hasta el momento en que se decide terminar y enviar el listado 
+de productos al proveedor.<br>
+Ingresando a <i>Generar Preorden</i>, se accede a un página que nos permite seleccionar la categoría; de esta manera, 
+no debemos recorrer todo el listado de productos que normalmente se necesitan, sino que sólo a una parte de ellos.<br>
+Luego, se pasa a una nueva página dónde se puede ver el detalle de los productos con las existencias actuales del 
+mismo, dónde tendremos la oportunidad de cargar las cantidades a solicitar.<br>
+Una vez ingresadas las cantidades, se accede a un resumen de lo cargado: esto ocurre con cada categoría a la que se 
+acceda, siendo la vista, un acumulado de lo que se va generando.<br>
+Nos encontramos también, con la posibilidad de <i>Modificar Cantidades</i> y de <i>Eliminar Productos</i>.<br>
+Para el primer caso, podemos modificar las cantidades ingresadas originalmente, en más o en menos; para aquellos 
+productos que se decidió no solicitar o se informó la imposibilidad de poder cumplir con lo necesitado, se lo/s puede 
+eliminar seleccionandolos.<br>
+<i>Consultar Preorden</i> permite visualizar cómo está conformado hasta el momento el probable pedido; la preorden es, 
+como se indicó anteriormente, una especie de borrador.<br>
+Al ingresar a la opción <b>Generar Pedido</b>, cierra y finaliza la preorden, le asigna número y fecha, y lo deja 
+disponible para descargar y enviar al proveedor; también permite acceso para su consulta.
+
+{% endblock %}

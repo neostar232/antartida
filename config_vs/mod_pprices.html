@@ -1,0 +1,30 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Modificación de Producto/s{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form action="{{ url_for('config_vs.mod_inhab_prod') }}" method="post">
+    <label for="tx_dmp">Seleccione producto/s a modificar</label>
+    Los productos seleccionados dejarán de visualizarse, pero podrán utilizarse en el futuro.<br>
+    Presione la tecla CTRL para seleccionar múltiples productos
+    <br><br>
+    <select size="15" name="id_dmp" multiple>
+      <option value="" style="width: 200px;">Seleccionar productos</option>
+      {% for prod in prods_sp %}
+        <option name="id_aprp" value="{{prod.id_product}}" style="width: 200px;">{{prod.desc_product}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <br>
+    <input type="submit" value="Desactivar Productos">
+  </form>
+  <br>
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}

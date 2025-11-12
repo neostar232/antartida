@@ -1,0 +1,36 @@
+{% if session.get("role") == 1 %}
+    {% extends "base.html" %}
+{% else %}
+    {% extends "base_r.html" %}
+{% endif %}
+
+{% block header %}
+  <h1>{% block title %}Modificación de Almacén{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="tx_mwh">Seleccione almacén a modificar</label>
+    <select name="id_mwh">
+      <option value="" style="width: 200px;">Seleccionar Almacén</option>
+      {% for wh in whs %}
+        <option name="id_mwh" value="{{wh.id_warehouse}}" style="width: 200px;">{{wh.tx_warehouse}}</option>
+        {% if not loop.last %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <label for="tx_mwh">Nuevo nombre del almacén</label>
+    <input name="tx_mwh" id="tx_wh" required style="width: 200px;">
+    <label for="desc_mwh">Descripción/ubicación del almacén</label>
+    <textarea rows = "5" cols = "20" name="desc_mwh" id="desc_mwh" required></textarea>
+    <label for="desc_mwh">Habilitado?</label>
+    <div class="radio-btns">      
+      Si<input type="radio" name="r_mwh" value="1">
+      No<input type="radio" name="r_mwh" value="0">
+    </div>
+    <br>
+    <input type="submit" value="Modificar Almacén">
+  </form>
+  
+  <a href="{{ url_for('auth.redirectlink') }}">Inicio</a>
+{% endblock %}
