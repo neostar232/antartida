@@ -15,15 +15,18 @@
 {% block content %}
 
   
-  <b>Gestión de Pasajeros</b><br>
-    <a class ="action" href="{{ url_for('passengers.add_psngr') }}" style="margin-right: 10px;">Alta de pasajeros Individual</a>
-    </br>
-    <a class ="action" href="{{ url_for('passengers.add_psngr_ff') }}" style="margin-right: 10px;">Alta de pasajeros Masiva (desde archivo)</a>
-    <a class = "action" href="{{ url_for('passengers.how_to') }}" style="margin-right: 10px;"> (Plantilla/Instructivo) </a>  
+  <b>Gestión de Pasajeros</b>
   <br>
-    <a class ="action" href="{{ url_for('passengers.enabled_trips') }}" style="margin-right: 10px;">Cierre de Trip</a>
+  <a class ="action" href="{{ url_for('passengers.add_psngr') }}" style="margin-right: 10px;">Alta de pasajeros Individual</a>
+  </br>
+  <a class ="action" href="{{ url_for('passengers.add_psngr_ff') }}" style="margin-right: 10px;">Alta de pasajeros Masiva (desde archivo)</a>
+  <a class = "action" href="{{ url_for('passengers.how_to') }}" style="margin-right: 10px;"> (Plantilla/Instructivo)</a>
   <br>
-    <a class ="action" href="{{ url_for('reports.collections') }}" style="margin-right: 10px;">Control de Facturación/Cobranzas</
+  <a class ="action" href="{{ url_for('passengers.enabled_trips') }}" style="margin-right: 10px;">Cierre de Trip</a>
+  <br>
+  <a class ="action" href="{{ url_for('passengers.psg_list') }}" style="margin-right: 10px;">Listado de Pasajeros</a>
+  <br>
+  <a class ="action" href="{{ url_for('reports.collections') }}" style="margin-right: 10px;">Control de Facturación/Cobranzas</a>
   <br>
   {% endblock %}
   <br>

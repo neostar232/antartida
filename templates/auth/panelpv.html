@@ -33,7 +33,7 @@
     <div class="grid-iteml">
       <img src="/static/merchan.png" alt="Merchandising">
       <br>
-      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=14) }}">Merchandising</a></b><br>
+      <b><a class="action" href="{{ url_for('consumption.clbar', id_cat=[11, 13, 14]) }}">Merchandising</a></b><br>
     </div>
 
     <div class="grid-itemf">
@@ -57,7 +57,15 @@
     <div class="grid-itemf">
       <img src="/static/impresora.png" alt="Impresiones">
       <br>
-      <b>Reimpresión de Tickets</b><br>
+      <b><a class="action" href="{{ url_for('print_module.sel_ticket_reprint') }}">Reimpresión de Tickets</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/money_bag.png" alt="Cobranzas">
+      <br>
+      <b><a class="action" href="{{ url_for('reports.collections') }}">Cobranzas Realizadas</a></b> / 
+      <b><a class="action" href="{{ url_for('reports.collectionsp') }}">Cobranzas Pendientes</a></b>
+      <br>
     </div>
 
     <div class="grid-itemf">
@@ -66,9 +74,19 @@
       <b><a class="action" href="{{ url_for('consumption.info_passenger', id_type=2) }}">Recupero datos usuario</a></b><br>
     </div>
 
+    <div class="grid-itemf">
+      <img src="/static/listing.png" alt="Listado de Pasajeros">
+      <br>
+      <b><a class="action" href="{{ url_for('passengers.psg_list') }}">Listado de Pasajeros</a></b><br>
+    </div>
+
+    <div class="grid-itemf">
+      <img src="/static/invoice.png" alt="Listado General de Precios">
+      <br>
+      <b><a class="action" href="{{ url_for('passengers.general_lp') }}">Lista General de Precios</a></b><br>
+    </div>
+
     
-
-
   </div>
 
   <br>

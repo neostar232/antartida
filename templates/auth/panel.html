@@ -9,19 +9,27 @@
 
   {% if g.user %}
   {% endif %}
-  
+
 {% endblock %}
 
 {% block content %}
+  <br>
+  <br>
 
-    <b>Acá va a ir el mensaje de bienvenida</b>
-
-    <br>
-
-  <!-- 
-  <a class ="action" href="{{ url_for('config_vs.tda') }}" style="margin-right: 10px;" target="_blank"> Guía de Uso </a>
-  -->
+  <b>
+  <div id="texto-pagina"></div>
+  </b>
 
   <br>
+
+  <script>
+      if (sessionStorage.getItem('yaVisito')) {
+          document.getElementById('texto-pagina').innerHTML = 'Puedes seguir operando, seleccionado las pestañas y trabajando en los enlaces';
+      } else {
+          document.getElementById('texto-pagina').innerHTML = 'Bienvenido al Sistema de Gestión del Buque Ushuaia.<br>Para comenzar selecciona una pestaña y luego un enlace';
+          sessionStorage.setItem('yaVisito', 'true');
+      }
+  </script>
+
+
   {% endblock %}
-  <br>
