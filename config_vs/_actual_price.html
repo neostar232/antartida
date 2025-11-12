@@ -1,6 +1,0 @@
-{# templates/config_vs/_actual_price.html #}
-{% if get_price %}
-    <label>Precio Actual: USD {{ "%.2f"|format(get_price.nu_price_usd) }}</label>
-{% else %}
-    <p>No existen precios asociados.</p>
-{% endif %}
