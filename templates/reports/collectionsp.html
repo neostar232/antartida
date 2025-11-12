@@ -5,7 +5,7 @@
 {% endif %}
 
 {% block header %}
-  <h1>{% block title %}Listado de Cobranzas Efectuadas (Viaje Actual){% endblock %}</h1>
+  <h1>{% block title %}Listado de Cobranzas Pendientes{% endblock %}</h1>
   {% if g.user %}
     
   {% endif %}
@@ -23,31 +23,21 @@
           <th scope="col">Viaje</th>
           <th scope="col">Pasajero</th>
           <th scope="col">Cant. Tickets</th>
-          <th scope="col">Fecha de Pago</th>
-          <th scope="col">Medio de Pago</th>
-          <th scope="col">Monto Cobrado</th>
+          <th scope="col">Por Cobrar</th>
         </tr>
       </thead>
       <tbody>
-        {% for dcoll in coll %}      
+        {% for dcoll in collp %}
           <tr>
             <td>{{dcoll.id_trip}}</td>
             <td>{{dcoll.nya}}</td>
             <td>{{dcoll.q_ticket}}</td>
-            <td>{{dcoll.dt_payment}}</td>
-            <td>{{dcoll.tx_pay_method}}</td>
             <td>{{"%.2f"|format(dcoll.total)}}</td>
           </tr>
         {% if not loop.last %}
         {% endif %}
         {% endfor %}
       </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="5" style="text-align: right;"><strong>Total General:</strong></td>
-          <td><strong>{{ "%.2f"|format(total_clt) }}</strong></td>
-        </tr>
-      </tfoot>
     </table>
     
 <br>

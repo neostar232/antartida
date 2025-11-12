@@ -16,13 +16,14 @@
 <header>
     
 </header>
-  <table>
+  <table id="supplierTable" name="supplierTable" class="tablesorter table table-striped table-hover table-curved">
     <thead>
       <tr>
         <th scope="col">Código</th>
         <th scope="col">Producto</th>
         <th scope="col">Cocina</th>
         <th scope="col">Bar</th>
+        <th scope="col">Ventas</th>
         <th scope="col">Consumos</th>
         <th scope="col">Roturas, Vencimientos, Gentilezas</th>
       </tr>
@@ -34,6 +35,7 @@
         <td style="width: 300px;">{{prod.producto}}</td>
         <td style="width: 60px;">{{prod.w13}}</td>
         <td style="width: 60px;">{{prod.w12}}</td>
+        <td style="width: 60px;">{{prod.w16}}</td>
         <td style="width: 60px;">{{prod.w14}}</td>
         <td style="width: 60px;">{{prod.w15}}</td>
       </tr>

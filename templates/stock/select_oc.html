@@ -22,7 +22,7 @@
           <th scope="col">Nro. de Orden de Compra</th>
           <th scope="col">Fecha de Orden de Compra</th>
           <th scope="col">Cant. de Productos</th>
-          <th scope="col">Acción</th>
+          <th scope="col" style="text-align: center;">Acción</th>
         </tr>
       </thead>
       <tbody>
@@ -31,8 +31,8 @@
           <td name="idord" style="width: 120px;">{{oc.id_order}}</td>
           <td name="dateor" style="width: 110px;">{{oc.dt_order}}</td>
           <td name="qtotalor" style="width: 80px;">{{oc.q}}</td>
-          <td name="butt" style="width: 128px;">
-            <button name="seloc" type="submit" value="{{oc.id_order}}" formaction="{{ url_for('stock.enter_prods') }}">Seleccionar</button>
+          <td name="butt" style="width: 220px;">
+            <button name="seloc" type="submit" value="{{oc.id_order}}" formaction="{{ url_for('stock.enter_prods') }}" style="margin-right: 50px;">Seleccionar</button>
             <button name="seloc" type="submit" value="{{oc.id_order}}" formaction="{{ url_for('orders.close_order') }}">Cerrar Orden</button>
           </td>
         {% endfor %}
